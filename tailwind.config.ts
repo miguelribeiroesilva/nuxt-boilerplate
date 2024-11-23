@@ -38,11 +38,7 @@ export default {
     `./app.{js,ts,vue}`,
     `./error.{js,ts,vue}`,
     `./app.config.{js,ts}`,
+    `./content/**/*.md`,
   ],
-  // safelist: [
-  //   'safelisted',
-  //   {
-  //     pattern: /bg-(red|green|blue)-(100|200|300)/,
-  //   },
-  // ]
+  plugins: [require('@tailwindcss/typography')],
 } satisfies Config;

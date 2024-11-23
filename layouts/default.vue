@@ -68,6 +68,13 @@ useLocaleHead({
             <li class="h-full">
               <NuxtLink
                 class="flex h-full w-full items-center justify-center rounded-lg border border-slate-200 bg-gray-50 px-4 text-gray-700 hover:cursor-pointer hover:border-slate-200 hover:bg-slate-200 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+                to="/blog"
+                >{{ $t("pages.blog.link") }}</NuxtLink
+              >
+            </li>
+            <li class="h-full">
+              <NuxtLink
+                class="flex h-full w-full items-center justify-center rounded-lg border border-slate-200 bg-gray-50 px-4 text-gray-700 hover:cursor-pointer hover:border-slate-200 hover:bg-slate-200 dark:border-gray-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
                 to="/minimal"
                 >{{ $t("pages.minimal.link") }}</NuxtLink
               >
@@ -109,12 +116,22 @@ useLocaleHead({
       <footer
         class="dark:text-300 py-20 text-center text-sm text-gray-600 dark:bg-slate-900"
       >
-        <p>© {{ new Date().getFullYear() }} - {{ $t("site.name") }}</p>
+        <p> 2023 - {{ $t("site.name") }}</p>
       </footer>
     </div>
   </div>
 </template>
 <style lang="postcss">
+ul {
+  list-style-type: none !important;
+  padding-left: 0 !important;
+  margin: 0 !important;
+}
+
+ul li {
+  margin: 0 !important;
+}
+
 ul .router-link-exact-active {
   @apply border-slate-400 bg-slate-500 text-white hover:border-slate-500 hover:bg-slate-500 dark:border-slate-600 dark:bg-slate-700;
 }

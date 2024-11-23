@@ -10,19 +10,8 @@ useSeoMeta({
 });
 </script>
 <template>
-  <div class="p-5">
-    <h1 class="text-4xl">{{ $t("pages.about.title") }}</h1>
-    <main class="mt-4 text-slate-500 dark:text-slate-400 [&>*]:mb-4">
-      <p>
-        {{ $t("pages.about.p") }}
-      </p>
-      <p>
-        {{ $t("pages.about.p") }}
-      </p>
-      <p>{{ $t("pages.about.p") }} {{ $t("pages.about.p") }}</p>
-      <p>
-        {{ $t("pages.about.p") }}
-      </p>
-    </main>
-  </div>
+  <BlogLayout>
+    <template #title>{{ $t("pages.about.title") }}</template>
+    <ContentDoc path="/about" />
+  </BlogLayout>
 </template>

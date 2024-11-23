@@ -122,6 +122,12 @@ useSeoMeta({
         <li class="py-2">
           <Icon
             name="heroicons:check-circle"
+            class="me-2 text-3xl text-green-500 dark:text-green-300"
+          />{{ $t("pages.index.features.content") }}
+        </li>
+        <li class="py-2">
+          <Icon
+            name="heroicons:check-circle"
             class="shape-geometric-precision me-2 text-3xl text-green-500 dark:text-green-300"
           />{{ $t("pages.index.features.imageOptim") }}
         </li>

@@ -49,14 +49,20 @@
         "Prettier": "Prettier",
         "imageOptim": "Image optimization",
         "TailwindCSS": "TailwindCSS",
-        "darkMode": "Dark mode",
-        "i18n": "Localization (i18n)",
-        "postcss": "PostCSS",
-        "lightHouse": "Lighthouse 100%",
-        "deviceDetect": "Device detection",
-        "cookies": "Cookie banner",
+        "i18n": "Internationalization",
+        "colorMode": "Color mode",
+        "deviceDetection": "Device detection",
+        "cookieControl": "Cookie control",
+        "pinia": "Pinia state management",
+        "icons": "Icons",
+        "content": "Nuxt Content",
+        "Pinia": "Pinia State Management",
+        "deviceDetect": "Device Detection",
         "Iconify": "Iconify",
-        "Pinia": "Pinia"
+        "darkMode": "Dark / Light",
+        "cookies": "Cookies",
+        "postcss": "PostCSS",
+        "lightHouse": "Lighthouse"
       }
     },
     "about": {
@@ -66,16 +72,24 @@
       },
       "link": "About",
       "title": "About",
-      "p": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Eaque iste atque, hic porro officiis fugit quae deserunt nobis dolorum odit dignissimos consequatur esse maiores repellat impedit. Quae dolorum id rem?"
+      "p": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+    },
+    "blog": {
+      "meta": {
+        "title": "Blog",
+        "description": "Blog posts and articles"
+      },
+      "link": "Blog",
+      "title": "Blog"
     },
     "minimal": {
       "meta": {
-        "title": "Minimal page (Fullscreen-layout)",
-        "description": "Minimal page using Fullscreen-layout"
+        "title": "Minimal",
+        "description": "Minimal page"
       },
       "link": "Minimal",
-      "title": "Minimal with Fullscreen-layout",
-      "p": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Eaque iste atque, hic porro officiis fugit quae deserunt nobis dolorum odit dignissimos consequatur esse maiores repellat impedit. Quae dolorum id rem?"
+      "title": "Minimal",
+      "p": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
     }
   }
 }
