@@ -12,7 +12,7 @@ A ready to use Nuxt 3 boilerplate
 ## Quick setup (TLDR;)
 
 ```bash
-git clone https://github.com/renegadevi/nuxt-boilerplate.git
+git clone https://github.com/miguelribeiroesilva/nuxt-boilerplate.git
 cd nuxt-boilerplate
 pnpm install
 pnpm run dev
