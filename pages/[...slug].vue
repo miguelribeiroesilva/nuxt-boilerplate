@@ -1,4 +1,10 @@
 <script setup>
-// Throw 404 error for any unmatched route
-throw createError({ statusCode: 404, statusMessage: 'Page Not Found' })
+import { useRouter } from '#imports'
+
+const router = useRouter()
+router.push('/404')
 </script>
+
+<template>
+  <div></div>
+</template>
