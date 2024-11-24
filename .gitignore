@@ -32,6 +32,7 @@ coverage
 
 # Node dependencies
 node_modules
+functions/modules
 
 # Logs
 logs
