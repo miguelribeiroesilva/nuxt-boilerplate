@@ -1,3 +1,5 @@
+import type {
+  User} from 'firebase/auth';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -5,7 +7,6 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  User,
   sendPasswordResetEmail,
   updateProfile,
 } from 'firebase/auth'

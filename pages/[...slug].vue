@@ -6,5 +6,5 @@ router.push('/404')
 </script>
 
 <template>
-  <div></div>
+  <div/>
 </template>

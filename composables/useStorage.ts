@@ -1,10 +1,11 @@
+import type {
+  StorageReference} from 'firebase/storage';
 import {
   ref as storageRef,
   uploadBytes,
   getDownloadURL,
   deleteObject,
-  listAll,
-  StorageReference,
+  listAll
 } from 'firebase/storage'
 import { ref } from 'vue'
 import { useFirebase } from './useFirebase'
