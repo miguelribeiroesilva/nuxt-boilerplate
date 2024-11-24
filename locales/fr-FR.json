@@ -1,81 +1,52 @@
 {
-  "locale.en-US": "English",
-  "locale.fr-FR": "Français",
-  "locale.ar-AR": "Arabic",
-  "locale.dir": "ltr",
-  "site": {
-    "name": "Nuxt Boilerplate"
+  "welcome": "Bienvenue sur Notre Site",
+  "navigation": {
+    "home": "Accueil",
+    "about": "À propos",
+    "contact": "Contact"
   },
-  "themes": {
-    "system": "Système",
-    "light": "Clair",
-    "dark": "Sombre"
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "search": "Rechercher"
   },
-  "cookies": {
-    "bar": {
-      "title": "🍪 Salut. Ce site utilise des cookies",
-      "description": "Nous utilisons des cookies et des technologies similaires pour personnaliser le contenu et offrir une meilleure expérience. Vous pouvez choisir de les personnaliser en cliquant sur le bouton personnaliser."
-    },
-    "modal": {
-      "title": "Personnaliser",
-      "description": "Nous utilisons différents types de cookies pour optimiser votre expérience sur notre site Web. Cliquez sur les catégories ci-dessous pour en savoir plus sur leurs objectifs. Vous pouvez choisir les types de cookies à autoriser et modifier ultérieurement vos préférences. N'oubliez pas que la désactivation des cookies peut affecter votre expérience.",
-      "privacy-policy": "Politique de confidentialité"
-    },
+  "footer": {
+    "rights": "Tous droits réservés",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "logout": "Déconnexion",
+    "email": "E-mail",
+    "password": "Mot de passe"
+  },
+  "cookie": {
+    "title": "Préférences des Cookies",
+    "message": "Nous utilisons des cookies pour améliorer votre expérience de navigation et analyser notre trafic. Veuillez choisir vos préférences ci-dessous.",
+    "modalMessage": "Nous utilisons des cookies pour fournir les fonctionnalités essentielles du site, améliorer votre expérience et analyser notre trafic avec des outils d'analyse. Ici, vous pouvez personnaliser vos préférences de consentement pour différentes catégories de cookies.",
+    "preferences": "Paramètres des Cookies",
+    "acceptAll": "Tout Accepter",
+    "declineAll": "Tout Refuser",
+    "customize": "Personnaliser",
+    "save": "Enregistrer les Préférences",
     "necessary": {
-      "title": "Cookies strictement nécessaires",
-      "description": "Ces cookies sont indispensables au bon fonctionnement de mon site internet. Sans ces cookies, le site Web ne fonctionnerait pas correctement"
-    }
-  },
-  "error": {
-    "return": "Retour",
-    "page-not-found": "Page non trouvée"
-  },
-  "pages": {
-    "index": {
-      "meta": {
-        "title": "Accueil",
-        "description": "Accueil"
-      },
-      "link": "Accueil",
-      "hero": {
-        "title": "Nuxt Boilerplate",
-        "subtitle": "Non officiel",
-        "description": "Un kit de démarrage prêt à l'emploi pour toutes sortes de projets"
-      },
-      "features": {
-        "googleFonts": "Polices Google",
-        "eslint": "ESLint",
-        "Typescript": "Typescript",
-        "Prettier": "Prettier",
-        "imageOptim": "Optimisation d'images",
-        "TailwindCSS": "TailwindCSS",
-        "darkMode": "Mode sombre",
-        "i18n": "Localisation (i18n)",
-        "postcss": "PostCSS",
-        "lightHouse": "Lighthouse 100%",
-        "deviceDetect": "Détection de périphérique",
-        "cookies": "Bannière de cookies",
-        "Iconify": "Iconify",
-        "Pinia": "Pinia"
-      }
+      "title": "Cookies Nécessaires",
+      "description": "Ces cookies sont nécessaires au bon fonctionnement du site. Ils permettent les fonctions de base comme la navigation et l'accès aux zones sécurisées du site."
     },
-    "about": {
-      "meta": {
-        "title": "À propos",
-        "description": "À propos"
-      },
-      "link": "À propos",
-      "title": "À propos",
-      "p": "Dans un jardin luxuriant, tout est calme et sérénité. Des fleurs aux couleurs vives se mêlent aux feuillages sombres des grands arbres. Le parfum sucré des roses embaume l'air tandis que le vent fait danser les feuilles. On entend le chant mélodieux des oiseaux, comme une symphonie naturelle qui ne cesse jamais. Dans ce havre de paix, on se sent loin du monde, enveloppé par la beauté et la quiétude de la nature."
+    "analytics": {
+      "title": "Cookies Analytiques",
+      "description": "Ces cookies nous aident à comprendre comment les visiteurs interagissent avec notre site en collectant et en rapportant des informations de manière anonyme."
     },
-    "minimal": {
-      "meta": {
-        "title": "Page minimale (mise en page plein écran)",
-        "description": "Page minimale utilisant la mise en page plein écran"
-      },
-      "link": "Minimale",
-      "title": "Page minimale (mise en page plein écran)",
-      "p": "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Eaque iste atque, hic porro officiis fugit quae deserunt nobis dolorum odit dignissimos consequatur esse maiores repellat impedit. Quae dolorum id rem?"
+    "functional": {
+      "title": "Cookies Fonctionnels",
+      "description": "Ces cookies permettent des fonctionnalités améliorées et une personnalisation, comme le chat en direct et d'autres contenus intégrés."
     }
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <form>
+  <form :class="$attrs.class">
     <label for="themes"><Icon name="gg:dark-mode" size="1.5em" /></label>
     <select
       id="themes"
@@ -10,24 +10,32 @@
       <option
         class="dark:bg-slate-800"
         value="system"
-        :aria-label="$t('themes.system')"
+        :aria-label="t('themes.system')"
       >
-        {{ $t("themes.system") }}
+        {{ t("themes.system") }}
       </option>
       <option
         class="dark:bg-slate-800"
         value="light"
-        :aria-label="$t('themes.light')"
+        :aria-label="t('themes.light')"
       >
-        {{ $t("themes.light") }}
+        {{ t("themes.light") }}
       </option>
       <option
         class="dark:bg-slate-800"
         value="dark"
-        :aria-label="$t('themes.dark')"
+        :aria-label="t('themes.dark')"
       >
-        {{ $t("themes.dark") }}
+        {{ t("themes.dark") }}
       </option>
     </select>
   </form>
 </template>
+
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
+defineOptions({
+  inheritAttrs: false
+})
+</script>

@@ -48,6 +48,12 @@ node_modules
 .env.*;
 !.env.example
 
+# Firebase
+.firebase/
+firebase-debug.log
+.firebaserc
+firebase-debug.*.log
+
 # Local certs
 certs/localhost-key.pem
 certs/localhost.pem

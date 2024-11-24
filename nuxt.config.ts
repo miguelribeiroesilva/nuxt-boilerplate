@@ -1,123 +1,261 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { defineNuxtConfig } from "nuxt/config";
-import en from "./locales/en-US.json";
-import fr from "./locales/fr-FR.json";
-import ar from "./locales/ar-AR.json";
+import { fileURLToPath } from 'url';
+
+interface CustomCookie {
+  id: string;
+  name: {
+    en: string;
+    fr: string;
+    ar: string;
+  };
+  description: {
+    en: string;
+    fr: string;
+    ar: string;
+  };
+  isPreselected?: boolean;
+}
+
+// Define an interface for your locale structure
+interface LocaleMessages {
+  locale: {
+    dir: string;
+  };
+  site: {
+    name: string;
+  };
+  pages: {
+    index: {
+      meta: {
+        title: string;
+        description: string;
+      };
+      link: string;
+    };
+  };
+}
+
+interface Locale {
+  code: string;
+  file: string;
+  name?: string;
+  language?: string;
+}
+
+interface CookieControlLocale {
+  code: string
+  barTitle: string
+  barDescription: string
+  acceptAll: string
+  declineAll: string
+  manageCookies: string
+  unsaved: string
+  close: string
+  save: string
+  necessary: {
+    title: string
+    description: string
+  }
+  optional: {
+    title: string
+    description: string
+  }
+}
 
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
+  runtimeConfig: {
+    public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
+      firebaseApiKey: process.env.FIREBASE_API_KEY,
+      firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN,
+      firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
+      firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+      firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+      firebaseAppId: process.env.FIREBASE_APP_ID,
+      locales: [
+        { 
+          code: "en",
+          name: "English",
+          file: "en-US.json",
+          iso: "en-US",
+          language: "en"
+        },
+        { 
+          code: "fr",
+          name: "Français",
+          file: "fr-FR.json",
+          iso: "fr-FR",
+          language: "fr"
+        },
+        { 
+          code: "ar",
+          name: "العربية",
+          file: "ar-AR.json",
+          iso: "ar-SA",
+          language: "ar"
+        }
+      ]
+    }
+  },
+
   nitro: {
-    compressPublicAssets: true,
-    logLevel: 4,
+    preset: 'firebase',
   },
 
   modules: [
-    "@nuxt/eslint",
-    "@pinia/nuxt",
-    "@nuxtjs/device",
-    "nuxt-icon",
-    "@nuxt/image",
-    "@nuxtjs/tailwindcss",
-    "@nuxtjs/google-fonts",
-    "@nuxtjs/color-mode",
-    "@nuxtjs/i18n",
-    "@dargmuesli/nuxt-cookie-control",
-    "@nuxt/content",
+    '@nuxtjs/i18n',
+    '@nuxtjs/tailwindcss',
+    '@nuxtjs/color-mode',
+    '@nuxtjs/device',
+    ['@dargmuesli/nuxt-cookie-control', {
+      cookieNameIsConsentGiven: 'ncc_c',
+      cookieNameCookiesEnabledIds: 'ncc_e',
+      isAcceptNecessaryButtonEnabled: true,
+      isModalForced: false,
+      isCookieIdVisible: false,
+      barPosition: 'bottom-full',
+      closeModalOnClickOutside: false,
+      colors: {
+        barBackground: '#fff',
+        barButtonBackground: '#4F46E5',
+        barButtonColor: '#fff',
+        barButtonHoverBackground: '#4338CA',
+        barTextColor: '#1F2937',
+        modalBackground: '#fff',
+        modalButtonBackground: '#4F46E5',
+        modalButtonColor: '#fff',
+        modalButtonHoverBackground: '#4338CA',
+        modalTextColor: '#1F2937',
+        checkboxActiveBackground: '#4F46E5',
+        checkboxInactiveBackground: '#E5E7EB',
+        checkboxDisabledBackground: '#D1D5DB',
+        checkboxActiveCircleBackground: '#fff',
+        checkboxInactiveCircleBackground: '#fff',
+        checkboxDisabledCircleBackground: '#fff',
+      },
+      cookies: {
+        necessary: [
+          {
+            id: 'necessary',
+            name: {
+              en: 'Necessary Cookies',
+              fr: 'Cookies Nécessaires',
+              ar: 'ملفات تعريف الارتباط الضرورية'
+            },
+            description: {
+              en: 'These cookies are required for the website to function properly. They enable basic functions like page navigation and access to secure areas of the website.',
+              fr: 'Ces cookies sont nécessaires au bon fonctionnement du site. Ils permettent les fonctions de base comme la navigation et l\'accès aux zones sécurisées du site.',
+              ar: 'هذه الملفات ضرورية لعمل الموقع بشكل صحيح. تمكن الوظائف الأساسية مثل التنقل في الصفحات والوصول إلى المناطق الآمنة في الموقع.'
+            },
+            default: true,
+            necessary: true
+          }
+        ],
+        optional: [
+          {
+            id: 'analytics',
+            name: {
+              en: 'Analytics Cookies',
+              fr: 'Cookies Analytiques',
+              ar: 'ملفات تعريف الارتباط التحليلية'
+            },
+            description: {
+              en: 'These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously.',
+              fr: 'Ces cookies nous aident à comprendre comment les visiteurs interagissent avec notre site en collectant et en rapportant des informations de manière anonyme.',
+              ar: 'تساعدنا هذه الملفات على فهم كيفية تفاعل الزوار مع موقعنا من خلال جمع المعلومات وإعداد التقارير بشكل مجهول.'
+            },
+            default: false
+          },
+          {
+            id: 'functional',
+            name: {
+              en: 'Functional Cookies',
+              fr: 'Cookies Fonctionnels',
+              ar: 'ملفات تعريف الارتباط الوظيفية'
+            },
+            description: {
+              en: 'These cookies enable enhanced functionality and personalization, such as live chat and other embedded content.',
+              fr: 'Ces cookies permettent des fonctionnalités améliorées et une personnalisation, comme le chat en direct et d\'autres contenus intégrés.',
+              ar: 'تمكن هذه الملفات الوظائف المحسنة والتخصيص، مثل الدردشة المباشرة والمحتوى المضمن الآخر.'
+            },
+            default: false
+          }
+        ]
+      }
+    }],
+    'nuxt-icon',
+    '@nuxt/content',
+    '@nuxt/image',
+    '@nuxtjs/google-fonts',
+    '@pinia/nuxt',
   ],
 
-  tailwindcss: {
-    cssPath: "~/assets/css/tailwind.css",
-    configPath: "tailwind.config.ts",
-    exposeConfig: false,
-    viewer: true,
+  i18n: {
+    baseUrl: process.env.NUXT_PUBLIC_SITE_URL,
+    vueI18n: './i18n.config.ts',
+    defaultLocale: 'en',
+    strategy: 'prefix_except_default',
+    langDir: "locales/",
+    locales: [
+      { 
+        code: "en",
+        name: "English",
+        file: "en-US.json",
+        iso: "en-US",
+        language: "en"
+      },
+      { 
+        code: "fr",
+        name: "Français",
+        file: "fr-FR.json",
+        iso: "fr-FR",
+        language: "fr"
+      },
+      { 
+        code: "ar",
+        name: "العربية",
+        file: "ar-AR.json",
+        iso: "ar-SA",
+        language: "ar"
+      }
+    ],
   },
 
-  postcss: {
-    plugins: {
-      "postcss-import": {},
-      tailwindcss: {},
-      autoprefixer: {},
-    },
-  },
-
-  imports: {
-    dirs: ["./stores", "./locales"],
-  },
-
-  app: {
-    head: {
-      charset: "utf-8",
-      viewport: "width=device-width, initial-scale=1",
-    },
+  cookieControl: {
+    locales: ['en', 'fr', 'ar']
   },
 
   colorMode: {
-    classSuffix: "",
+    classSuffix: '',
   },
 
-  image: {
-    provider: "ipx",
-    quality: 80,
-    format: ["png", "jpeg", "webp"],
+  content: {
+    // https://content.nuxtjs.org/api/configuration
+    highlight: {
+      theme: 'github-dark',
+      preload: ['json', 'js', 'ts', 'html', 'css', 'vue', 'diff', 'shell', 'markdown', 'yaml', 'bash', 'ini']
+    }
   },
 
   googleFonts: {
     families: {
-      Inter: true,
-    },
-    display: "swap",
-    prefetch: true,
-    preconnect: true,
+      Inter: true
+    }
   },
 
-  i18n: {
-    vueI18n: "./i18n.config.ts",
-    detectBrowserLanguage: {
-      useCookie: false,
-      alwaysRedirect: true,
-      fallbackLocale: "en-US",
-      redirectOn: "root", // recommended
-    },
+  image: {
+    // Options
   },
 
-  eslint: {
-    // lintOnStart: false,
+  app: {
+    head: {
+      charset: 'utf-8',
+      viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+    }
   },
 
-  cookieControl: {
-    cookieExpiryOffsetMs: 1000 * 60 * 60 * 24 * 365, // one year
-    // set all these to true for highest GDPR enforcement
-    isAcceptNecessaryButtonEnabled: true,
-    isModalForced: false,
-    isCookieIdVisible: true,
-    closeModalOnClickOutside: true,
-    // show cookie button
-    isControlButtonEnabled: true,
-    // disable to get unstyled css for tailwind
-    isCssEnabled: false,
-    isDashInDescriptionEnabled: false,
-    cookies: {
-      necessary: [
-        {
-          name: {
-            fr: fr.cookies.necessary.title,
-            en: en.cookies.necessary.title,
-            ar: ar.cookies.necessary.title,
-          },
-          description: {
-            fr: fr.cookies.necessary.description,
-            en: en.cookies.necessary.description,
-            ar: ar.cookies.necessary.description,
-          },
-          targetCookieIds: ["ncc_"],
-          id: "",
-        },
-      ],
-      optional: [],
-    },
-    locales: ["en", "fr", "ar"],
-  },
-
-  compatibilityDate: "2024-09-15",
+  compatibilityDate: '2024-11-24'
 });

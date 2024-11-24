@@ -16,7 +16,10 @@ useHead({
   <NuxtLayout>
     <div>
       <CookieBanner />
-      <NuxtPage />
+
+      <main class="container mx-auto py-8">
+        <NuxtPage />
+      </main>
     </div>
   </NuxtLayout>
 </template>
