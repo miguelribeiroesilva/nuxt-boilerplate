@@ -1,0 +1,70 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // This rule allows anyone with your Firestore database reference to view, edit,
+    // and delete all data in your Firestore database. It is useful for getting
+    // started, but it is configured to expire after 30 days because it
+    // leaves your app open to attackers. At that time, all client
+    // requests to your Firestore database will be denied.
+    //
+    // Make sure to write security rules for your app before that time, or else
+    // all client requests to your Firestore database will be denied until you Update
+    // your rules
+    match /items/{document=**} {
+      allow read, write: if request.time < timestamp.date(2024, 12, 25);
+    }
+    match /categories/{document=**} {
+      allow read, write: if request.time < timestamp.date(2024, 12, 25);
+    }
+    match /products/{document=**} {
+      allow read, write: if request.time < timestamp.date(2024, 12, 25);
+    }
+    match /users/{document=**} {
+      allow read, write: if request.time < timestamp.date(2024, 12, 25);
+    }
+    match /meals/{document=**} {
+      allow read, write: if request.time < timestamp.date(2024, 12, 25);
+    }
+  	match /widgets/{document=**} {
+      allow read, write: if request.time < timestamp.date(2024, 12, 25);
+    }
+    match /memories/{document=**} {
+      allow read, write: if request.time < timestamp.date(2024, 12, 25);
+    }
+    match /retailer_images/{document=**} {
+      allow read, write: if request.time < timestamp.date(2024, 12, 25);
+    }
+    match /user_images/{document=**} {
+      allow read, write: if request.time < timestamp.date(2024, 12, 25);
+    }
+    match /todos/{document=**} {
+      allow read, write: if request.time < timestamp.date(2024, 12, 25);
+    }
+
+
+    match /users/centralcervejas/users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    match /reference_images/centralcervejas/reference_images/{imageId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/centralcervejas/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    match /user_images/centralcervejas/user_images/{imageId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+    match /logs/centralcervejas/logs/{imageId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+
+  }
+
+  
+}

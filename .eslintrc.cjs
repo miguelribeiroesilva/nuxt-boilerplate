@@ -5,7 +5,6 @@ module.exports = {
     node: true,
   },
   parserOptions: {
-    // parser: "@babel/eslint-parser",
     parser: "@typescript-eslint/parser",
     requireConfigFile: false,
     ecmaVersion: 2022,
@@ -19,5 +18,6 @@ module.exports = {
   plugins: ["prettier"],
   rules: {
     "no-console": "off",
+    "vue/no-self-closing-void-elements": "off"
   },
 };

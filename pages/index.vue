@@ -10,11 +10,7 @@ useSeoMeta({
 });
 </script>
 <template>
-  <!--
 
-    Template inside is intended to be removed..
-
-    -->
   <div class="mb-10 mt-5 flex justify-center">
     <section class="w-full max-w-3xl">
       <div
@@ -116,7 +112,7 @@ useSeoMeta({
         <li class="py-2">
           <Icon
             name="heroicons:check-circle"
-            class="shape-geometric-precision me-2 text-3xl text-green-500 dark:text-green-300"
+            class="me-2 text-3xl text-green-500 dark:text-green-300"
           />{{ $t("pages.index.features.Pinia") }}
         </li>
         <li class="py-2">
@@ -128,13 +124,13 @@ useSeoMeta({
         <li class="py-2">
           <Icon
             name="heroicons:check-circle"
-            class="shape-geometric-precision me-2 text-3xl text-green-500 dark:text-green-300"
-          />{{ $t("pages.index.features.imageOptim") }}
+            class="me-2 text-3xl text-green-500 dark:text-green-300"
+          />{{ $t("pages.index.features.colorMode") }}
         </li>
         <li class="py-2">
           <Icon
             name="heroicons:check-circle"
-            class="shape-geometric-precision me-2 text-3xl text-green-500 dark:text-green-300"
+            class="me-2 text-3xl text-green-500 dark:text-green-300"
           />{{ $t("pages.index.features.lightHouse") }}
         </li>
       </ul>

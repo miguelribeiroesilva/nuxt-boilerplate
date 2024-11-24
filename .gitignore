@@ -43,6 +43,11 @@ logs
 # Local env files
 node_modules
 
+# Environment Variables
+.env
+.env.*;
+!.env.example
+
 # Local certs
 certs/localhost-key.pem
 certs/localhost.pem

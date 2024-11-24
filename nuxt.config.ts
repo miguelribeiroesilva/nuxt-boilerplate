@@ -82,7 +82,7 @@ export default defineNuxtConfig({
   },
 
   eslint: {
-    lintOnStart: false,
+    // lintOnStart: false,
   },
 
   cookieControl: {
