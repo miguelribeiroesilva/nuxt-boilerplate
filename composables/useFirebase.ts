@@ -3,6 +3,7 @@ import { getFirestore } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 import { getStorage } from 'firebase/storage'
 import { useRuntimeConfig } from 'nuxt/app'
+import { Timestamp } from 'firebase/firestore';
 
 export const useFirebase = () => {
   const config = useRuntimeConfig()
@@ -31,11 +32,18 @@ export const useFirebase = () => {
     })
   }
 
+  const formatTimestamp = (timestamp: Date | Timestamp | null): string => {
+    if (!timestamp) return 'Just now';
+    const date = timestamp instanceof Timestamp ? timestamp.toDate() : timestamp;
+    return date.toLocaleTimeString();
+  };
+
   return {
     app,
     auth,
     firestore,
     storage,
     getCurrentUser,
+    formatTimestamp,
   }
 }

@@ -1,30 +1,35 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ChatOpenAI } from '@langchain/openai';
-import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { HumanMessage, AIMessage } from '@langchain/core/messages';
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp, updateDoc } from 'firebase/firestore';
 import { useFirebase } from '~/composables/useFirebase';
 import ApiKeyDialog from './components/ApiKeyDialog.vue';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import Message from 'primevue/message';
 
 interface Message {
+  id?: string;
   role: 'human' | 'ai' | 'system';
   content: string;
   timestamp: Date | Timestamp;
 }
 
+// Component state
 const messages = ref<Message[]>([]);
 const newMessage = ref('');
 const isLoading = ref(false);
 const apiKey = ref('');
 const showApiKeyDialog = ref(false);
-const chat = ref<ChatOpenAI | null>(null);
+const model = ref<ChatOpenAI | null>(null);
 const error = ref<string | null>(null);
+const currentStreamingContent = ref('');
 
 // Get Firestore instance and utils
 const { firestore, formatTimestamp } = useFirebase();
 
 const validateApiKey = (key: string): boolean => {
-  // Check if key starts with 'sk-' and has sufficient length
   return key.startsWith('sk-') && key.length > 20;
 };
 
@@ -40,24 +45,24 @@ const initializeChat = async (key: string) => {
   }
 
   try {
-    chat.value = new ChatOpenAI({
+    model.value = new ChatOpenAI({
       openAIApiKey: key.trim(),
       temperature: 0.7,
+      streaming: true,
     });
 
     // Test the API key with a simple request
-    await chat.value.invoke([new HumanMessage('test')]);
+    await model.value.invoke([new HumanMessage('test')]);
 
     if (window?.localStorage) {
-      console.log(key);
       window.localStorage.setItem('openai_api_key', key);
     }
     showApiKeyDialog.value = false;
     error.value = null;
   } catch (e) {
-    console.error('Error validating API key:', e);
-    error.value = 'Invalid API key. Please check your OpenAI API key.';
-    chat.value = null;
+    console.error('Error initializing chat:', e);
+    error.value = 'Failed to initialize chat with API key.';
+    model.value = null;
     if (window?.localStorage) {
       window.localStorage.removeItem('openai_api_key');
     }
@@ -67,10 +72,9 @@ const initializeChat = async (key: string) => {
 onMounted(async () => {
   try {
     const savedKey = window?.localStorage?.getItem('openai_api_key');
-    console.log(savedKey);
     if (savedKey) {
       apiKey.value = savedKey;
-      initializeChat(savedKey);
+      await initializeChat(savedKey);
     } else {
       showApiKeyDialog.value = true;
     }
@@ -78,20 +82,19 @@ onMounted(async () => {
     if (!firestore) return;
 
     // Subscribe to messages
-    const messagesRef = collection(firestore, 'chat-messages');
+    const messagesRef = collection(firestore, 'messages');
     const q = query(messagesRef, orderBy('timestamp', 'asc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       messages.value = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
-          ...data,
-          timestamp: data.timestamp || new Date(),
-        } as Message;
+          id: doc.id,
+          role: data.role,
+          content: data.content,
+          timestamp: data.timestamp,
+        };
       });
-    }, (err) => {
-      console.error('Error getting messages:', err);
-      error.value = 'Failed to load messages. Please refresh the page.';
     });
 
     // Cleanup subscription on component unmount
@@ -102,84 +105,98 @@ onMounted(async () => {
   }
 });
 
-const formatMessages = () => {
-  return messages.value.map(msg => {
-    switch (msg.role) {
-      case 'human':
-        return new HumanMessage(msg.content);
-      case 'ai':
-        return new AIMessage(msg.content);
-      case 'system':
-        return new SystemMessage(msg.content);
-    }
-  });
+const handleApiKeySubmit = async (key: string) => {
+  apiKey.value = key;
+  await initializeChat(key);
 };
 
 const sendMessage = async () => {
-  if (!newMessage.value.trim() || isLoading.value || !chat.value || !firestore) return;
+  if (!newMessage.value.trim() || isLoading.value || !model.value || !firestore) return;
 
-  const userMessage = {
-    role: 'human' as const,
-    content: newMessage.value,
-    timestamp: new Date()
-  };
-
-  isLoading.value = true;
-  newMessage.value = '';
-  error.value = null;
+  const messageContent = newMessage.value.trim();
+  newMessage.value = ''; // Clear input immediately
+  currentStreamingContent.value = ''; // Reset streaming content
 
   try {
+    isLoading.value = true;
+
     // Add user message to Firestore
-    const messagesRef = collection(firestore, 'chat-messages');
-    await addDoc(messagesRef, {
-      ...userMessage,
-      timestamp: serverTimestamp()
+    const userMessageRef = await addDoc(collection(firestore, 'messages'), {
+      role: 'human',
+      content: messageContent,
+      timestamp: serverTimestamp(),
     });
 
-    const formattedMessages = formatMessages();
-    const response = await chat.value.call(formattedMessages);
-
-    // Add AI response to Firestore
-    await addDoc(messagesRef, {
+    // Add initial AI message
+    const aiMessageRef = await addDoc(collection(firestore, 'messages'), {
       role: 'ai',
-      content: response.content,
-      timestamp: serverTimestamp()
+      content: '',
+      timestamp: serverTimestamp(),
     });
+
+    // Create chat history
+    const chatHistory = messages.value
+      .filter(msg => msg.role === 'human' || msg.role === 'ai')
+      .map(msg => msg.role === 'human' ? new HumanMessage(msg.content) : new AIMessage(msg.content));
+
+    // Add current message
+    chatHistory.push(new HumanMessage(messageContent));
+
+    // Stream the response
+    const stream = await model.value.stream(chatHistory);
+
+    // Process the stream
+    try {
+      for await (const chunk of stream) {
+        if (chunk.content) {
+          currentStreamingContent.value += chunk.content;
+          // Update Firestore with current content
+          await updateDoc(aiMessageRef, {
+            content: currentStreamingContent.value,
+          });
+        }
+      }
+    } catch (streamError) {
+      console.error('Streaming error:', streamError);
+      throw streamError;
+    }
 
   } catch (e) {
     console.error('Error:', e);
     error.value = 'Failed to send message. Please try again.';
-    // Add error message to Firestore
-    if (firestore) {
-      try {
-        const messagesRef = collection(firestore, 'chat-messages');
-        await addDoc(messagesRef, {
-          role: 'system',
-          content: 'Sorry, there was an error processing your message.',
-          timestamp: serverTimestamp()
-        });
-      } catch (firestoreError) {
-        console.error('Error saving error message:', firestoreError);
-      }
+
+    if (e.toString().includes('API key')) {
+      error.value = 'Invalid API key. Please check your OpenAI API key.';
+      showApiKeyDialog.value = true;
+      model.value = null;
+    } else {
+      // Add error message to Firestore
+      await addDoc(collection(firestore, 'messages'), {
+        role: 'system',
+        content: 'Error: Failed to process message. Please try again.',
+        timestamp: serverTimestamp(),
+      });
     }
   } finally {
     isLoading.value = false;
+    currentStreamingContent.value = '';
   }
 };
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
+  <div class="card">
+    <!-- API Key Dialog -->
     <ApiKeyDialog
       v-model="showApiKeyDialog"
       v-model:apiKey="apiKey"
       :error="error"
-      @submit="initializeChat"
+      @submit="handleApiKeySubmit"
     />
 
-    <div class="flex-1 overflow-y-auto">
+    <div class="flex flex-col min-h-screen">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">AI Chat</h1>
+        <h1 class="text-3xl font-bold">Streaming Chat</h1>
         <Button
           icon="pi pi-key"
           severity="secondary"
@@ -193,8 +210,8 @@ const sendMessage = async () => {
       <Message v-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
 
       <!-- Messages Container -->
-      <div class="flex-1 mb-4 bg-white dark:bg-slate-800 rounded-lg p-4">
-        <div v-for="(message, index) in messages" :key="index" class="mb-4">
+      <div class="flex-1 mb-4 bg-white dark:bg-slate-800 rounded-lg p-4 overflow-y-auto">
+        <div v-for="message in messages" :key="message.id" class="mb-4">
           <div
             :class="{
               'flex gap-4': true,
@@ -228,21 +245,21 @@ const sendMessage = async () => {
         <div class="flex gap-2">
           <InputText
             v-model="newMessage"
-            placeholder="Type your message..."
-            class="flex-1 !bg-white dark:!bg-gray-900 !border-gray-300 dark:!border-gray-600"
+            placeholder="Type a message..."
+            class="flex-1"
             @keyup.enter="sendMessage"
-            :disabled="isLoading || !chat"
+            :disabled="isLoading || !model"
           />
           <Button
             icon="pi pi-send"
             @click="sendMessage"
             :loading="isLoading"
-            :disabled="!newMessage.trim() || !chat"
+            :disabled="!newMessage.trim() || !model"
           />
         </div>
 
         <!-- Help text if API key is not set -->
-        <div v-if="!chat" class="text-sm text-gray-500 mt-2">
+        <div v-if="!model" class="text-sm text-gray-500 mt-2">
           Click the key icon in the top right to set up your OpenAI API key
         </div>
       </div>
@@ -251,16 +268,12 @@ const sendMessage = async () => {
 </template>
 
 <style scoped>
-.p-inputtext {
-  color: var(--text-color);
+.card {
+  padding: 1.5rem;
+  height: 100vh;
 }
 
-.p-inputtext::placeholder {
-  color: var(--text-color-secondary);
-}
-
-:deep(.p-inputtext:enabled:focus) {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 1px var(--primary-color);
+.min-h-screen {
+  min-height: calc(100vh - 3rem);
 }
 </style>

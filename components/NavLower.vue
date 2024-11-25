@@ -45,6 +45,11 @@ const items = [
         label: 'Chat with Tools',
         icon: 'pi pi-cog',
         command: () => navigateTo('/ai/chat-tools')
+      },
+      {
+        label: 'Streaming Chat',
+        icon: 'pi pi-bolt',
+        command: () => navigateTo('/ai/chat-stream')
       }
     ]
   },
