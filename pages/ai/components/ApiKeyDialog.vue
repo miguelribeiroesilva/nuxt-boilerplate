@@ -5,7 +5,7 @@
     modal
     :closable="false"
     :closeOnEscape="false"
-    header="OpenAI API Key Required"
+    :header="provider === 'openai' ? 'OpenAI API Key Required' : 'Anthropic API Key Required'"
     class="api-key-dialog"
   >
     <div class="p-fluid">
@@ -18,21 +18,21 @@
             class="w-full"
             @keyup.enter="handleSubmit"
           />
-          <label for="apiKey">OpenAI API Key</label>
+          <label for="apiKey">{{ provider === 'openai' ? 'OpenAI' : 'Anthropic' }} API Key</label>
         </span>
       </div>
       <small class="p-error" v-if="props.error">{{ props.error }}</small>
       <div class="mt-4">
         <p class="text-sm mb-2">
-          To use this chat, you need an OpenAI API key. You can get one from:
+          To use this chat, you need an {{ provider === 'openai' ? 'OpenAI' : 'Anthropic' }} API key. You can get one from:
         </p>
         <a
-          href="https://platform.openai.com/api-keys"
+          :href="provider === 'openai' ? 'https://platform.openai.com/api-keys' : 'https://console.anthropic.com/settings/keys'"
           target="_blank"
           rel="noopener noreferrer"
           class="text-sm text-primary hover:underline"
         >
-          https://platform.openai.com/api-keys
+          {{ provider === 'openai' ? 'https://platform.openai.com/api-keys' : 'https://console.anthropic.com/settings/keys' }}
         </a>
       </div>
     </div>
@@ -58,12 +58,14 @@ interface Props {
   modelValue: boolean;
   apiKey: string;
   error: string | null;
+  provider: 'openai' | 'anthropic';
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: false,
   apiKey: '',
   error: null,
+  provider: 'openai',
 });
 
 const emit = defineEmits<{
@@ -99,22 +101,27 @@ const handleSubmit = async () => {
 }
 
 :deep(.p-dialog-header) {
-  padding-bottom: 1rem;
+  padding: 1.5rem;
+  background-color: var(--surface-section);
+  border-bottom: 1px solid var(--surface-border);
 }
 
 :deep(.p-dialog-content) {
-  padding-bottom: 1.5rem;
+  padding: 2rem;
+  background-color: var(--surface-section);
 }
 
 :deep(.p-dialog-footer) {
-  padding-top: 0;
+  padding: 1.5rem;
+  background-color: var(--surface-section);
+  border-top: 1px solid var(--surface-border);
 }
 
-.p-field {
-  margin-bottom: 1rem;
+:deep(.p-dialog-mask) {
+  backdrop-filter: blur(4px);
 }
 
-:deep(.p-float-label) {
+.p-float-label {
   margin-bottom: 1rem;
 }
 

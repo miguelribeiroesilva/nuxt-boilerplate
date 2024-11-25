@@ -140,7 +140,7 @@ import Sidebar from 'primevue/sidebar';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import Slider from 'primevue/slider';
-import { type ModelConfig, type ModelOption, defaultConfig } from '~/composables/useAIModel';
+import { type ModelConfig, type ModelOption, useAIModel } from '~/composables/useAIModel';
 
 interface Props {
   modelValue: boolean;
@@ -155,6 +155,7 @@ const emit = defineEmits<{
   'update:config': [value: ModelConfig];
 }>();
 
+const { defaultConfig } = useAIModel();
 const localConfig = ref<ModelConfig>({ ...props.config });
 
 watch(() => props.config, (newConfig) => {

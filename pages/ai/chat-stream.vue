@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick, onUnmounted } from 'vue';
+import { ref, onMounted, watch, nextTick, onUnmounted, computed } from 'vue'; // Update Vue import to ensure compatibility with Nuxt 3
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp, updateDoc } from 'firebase/firestore';
@@ -35,48 +35,97 @@ const {
 const messages = ref<Message[]>([]);
 const newMessage = ref('');
 const isLoading = ref(false);
-const apiKey = ref('');
+const apiKeys = ref({
+  openai: '',
+  anthropic: ''
+});
 const showApiKeyDialog = ref(false);
 const error = ref<string | null>(null);
 const currentStreamingContent = ref('');
-const systemMessage = 'Welcome to the chat!';
+const currentStreamingMessageId = ref<string | null>(null); // Track current streaming message
+
+// Dynamic system message based on model
+const systemMessage = computed(() => {
+  const selectedModel = availableModels.value.find(m => m.value === modelConfig.value.modelName);
+  if (selectedModel) {
+    if (selectedModel.provider === 'anthropic') {
+      return `You are Claude ${selectedModel.label}, an AI assistant created by Anthropic. You are helpful, direct, and aim to provide accurate and nuanced responses.`;
+    } else {
+      return `You are OpenAI ${selectedModel.label}, an AI assistant created by OpenAI. You are helpful, creative, and aim to provide accurate and engaging responses.`;
+    }
+  }
+  return 'Welcome to the chat!';
+});
+
 const messagesContainer = ref<HTMLElement | null>(null);
 
 const validateApiKey = (key: string): boolean => {
+  console.log(key);
   if (!key) return false;
-  return key.startsWith('sk-') && key.length > 20;
+  key = key.trim();
+
+  if (modelConfig.value.provider === 'openai') {
+    return key.startsWith('sk-');
+  } else if (modelConfig.value.provider === 'anthropic') {
+    // Matches sk-ant-api followed by version number (e.g., 01, 02, 03) and a hyphen
+    return /^sk-ant-api\d{2}-/.test(key);
+  }
+  return false;
+};
+
+const loadStoredApiKey = () => {
+  const provider = modelConfig.value.provider;
+  const storedKey = window?.localStorage?.getItem(`${provider}_api_key`);
+  if (storedKey) {
+    apiKeys.value[provider] = storedKey;
+    return storedKey;
+  }
+  return null;
 };
 
 const initializeChat = async (key: string) => {
+  const provider = modelConfig.value.provider;
+
   if (!validateApiKey(key)) {
-    error.value = 'Invalid API key format. Key should start with "sk-"';
+    const prefix = provider === 'openai' ? 'sk-' : 'sk-ant-api[VERSION]-';
+    error.value = provider === 'openai'
+      ? `Invalid API key format. Key should start with "${prefix}"`
+      : 'Invalid Anthropic API key format. Key should start with "sk-ant-api" followed by version number (e.g., "sk-ant-api01-")';
     showApiKeyDialog.value = true;
-    window.localStorage.removeItem('openai_api_key');
+    window.localStorage.removeItem(`${provider}_api_key`);
     return;
   }
 
   try {
     await initializeModel(key);
-    window?.localStorage?.setItem('openai_api_key', key);
+    window?.localStorage?.setItem(`${provider}_api_key`, key);
+    apiKeys.value[provider] = key;
     showApiKeyDialog.value = false;
     error.value = null;
   } catch (e) {
     console.error('Error initializing model:', e);
     error.value = 'Failed to initialize model. Please check your API key.';
     showApiKeyDialog.value = true;
-    window.localStorage.removeItem('openai_api_key');
+    window.localStorage.removeItem(`${provider}_api_key`);
   }
 };
 
 // Watch for model config changes
-watch(() => modelConfig.value, async () => {
-  if (apiKey.value) {
+watch(() => modelConfig.value, async (newConfig, oldConfig) => {
+  // Skip if configs are the same
+  if (JSON.stringify(newConfig) === JSON.stringify(oldConfig)) return;
+
+  const storedKey = loadStoredApiKey();
+  if (storedKey) {
     try {
-      await updateConfig(modelConfig.value, apiKey.value);
+      await initializeModel(storedKey);
     } catch (e) {
       console.error('Error updating model config:', e);
-      error.value = 'Failed to update model configuration.';
+      error.value = 'Failed to initialize model with stored API key.';
+      showApiKeyDialog.value = true;
     }
+  } else {
+    showApiKeyDialog.value = true;
   }
 }, { deep: true });
 
@@ -90,32 +139,53 @@ watch([messages, currentStreamingContent], () => {
 let unsubscribe: (() => void) | undefined;
 
 onMounted(async () => {
+  if (!firestore) return;
+
+  const q = query(collection(firestore, 'messages'), orderBy('timestamp', 'asc'));
+  unsubscribe = onSnapshot(q, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      const messageData = change.doc.data() as any;
+      const message: Message = {
+        id: change.doc.id,
+        role: messageData.role,
+        content: messageData.content,
+        timestamp: messageData.timestamp instanceof Timestamp
+          ? formatTimestamp(messageData.timestamp)
+          : null
+      };
+
+      if (change.type === 'added') {
+        // Only add if it's not the currently streaming message
+        if (currentStreamingMessageId.value !== change.doc.id) {
+          messages.value.push(message);
+        }
+      } else if (change.type === 'modified') {
+        // Only update if it's not the currently streaming message
+        if (currentStreamingMessageId.value !== change.doc.id) {
+          const index = messages.value.findIndex(m => m.id === change.doc.id);
+          if (index !== -1) {
+            messages.value[index] = message;
+          }
+        }
+      } else if (change.type === 'removed') {
+        const index = messages.value.findIndex(m => m.id === change.doc.id);
+        if (index !== -1) {
+          messages.value.splice(index, 1);
+        }
+      }
+    });
+  });
+
   try {
-    const savedKey = window?.localStorage?.getItem('openai_api_key');
-    if (savedKey) {
-      apiKey.value = savedKey; // Set the key first
-      await initializeChat(savedKey);
+    const storedKey = loadStoredApiKey();
+    if (storedKey) {
+      await initializeChat(storedKey);
     } else {
-      await nextTick();
       showApiKeyDialog.value = true;
     }
-
-    // Set up Firestore listener
-    if (firestore) {
-      const messagesRef = collection(firestore, 'messages');
-      const q = query(messagesRef, orderBy('timestamp', 'asc'));
-
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        messages.value = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          timestamp: (doc.data().timestamp as Timestamp)?.toDate() || new Date(),
-        })) as Message[];
-      });
-    }
-  } catch (error) {
-    console.error('Error in onMounted:', error);
-    error.value = 'An error occurred while initializing the chat.';
+  } catch (e) {
+    console.error('Error in onMounted:', e);
+    error.value = 'Failed to initialize chat.';
     showApiKeyDialog.value = true;
   }
 });
@@ -132,13 +202,21 @@ const handleApiKeySubmit = async (key: string) => {
     return;
   }
 
-  apiKey.value = key; // Set the key first
   await initializeChat(key);
+};
+
+const autoResize = (e: Event) => {
+  const textarea = e.target as HTMLTextAreaElement;
+  textarea.style.height = 'auto';
+  textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`; // 160px is 10rem
 };
 
 const scrollToBottom = () => {
   if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth'
+    });
   }
 };
 
@@ -168,11 +246,22 @@ const sendMessage = async () => {
       timestamp: serverTimestamp(),
     });
 
+    // Set current streaming message ID
+    currentStreamingMessageId.value = aiMessageRef.id;
+
+    // Add message to local state for immediate display
+    messages.value.push({
+      id: aiMessageRef.id,
+      role: 'ai',
+      content: '',
+      timestamp: new Date().toISOString()
+    });
+
     // Create chat history with system message
     const chatHistory = [
-      new SystemMessage(systemMessage),
+      new SystemMessage(systemMessage.value),
       ...messages.value
-        .filter(msg => msg.id !== aiMessageRef.id)
+        .filter(msg => msg.id !== aiMessageRef.id && msg.role !== 'system')
         .map(msg => msg.role === 'human' ? new HumanMessage(msg.content) : new AIMessage(msg.content))
     ];
 
@@ -182,20 +271,32 @@ const sendMessage = async () => {
     // Get AI response
     if (model.value) {
       const stream = await model.value.stream(chatHistory);
+      let accumulatedContent = '';
 
       try {
         for await (const chunk of stream) {
           if (chunk.content) {
-            currentStreamingContent.value += chunk.content;
-            // Update Firestore with current content
+            accumulatedContent += chunk.content;
+
+            // Update local state directly
+            const index = messages.value.findIndex(m => m.id === aiMessageRef.id);
+            if (index !== -1) {
+              messages.value[index].content = accumulatedContent;
+            }
+
+            // Update Firestore (but don't rely on real-time updates for this message)
             await updateDoc(aiMessageRef, {
-              content: currentStreamingContent.value,
+              content: accumulatedContent,
             });
           }
         }
       } catch (streamError) {
         console.error('Streaming error:', streamError);
+        error.value = `Error during streaming: ${streamError.message}`;
         throw streamError;
+      } finally {
+        // Clear current streaming message ID
+        currentStreamingMessageId.value = null;
       }
     }
   } catch (e) {
@@ -212,49 +313,65 @@ const sendMessage = async () => {
     currentStreamingContent.value = '';
   }
 };
+
+watch(() => messages.value.length, () => {
+  nextTick(() => {
+    scrollToBottom();
+  });
+});
+
+watch(() => messages.value[messages.value.length - 1]?.content, () => {
+  nextTick(() => {
+    scrollToBottom();
+  });
+});
 </script>
 
 <template>
-  <main class="h-screen flex flex-col p-4">
+  <main class="relative min-h-screen">
     <!-- Error Message -->
-    <Message v-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
+    <Message v-if="error" severity="error" :closable="false" class="m-4">{{ error }}</Message>
 
-    <!-- Messages Area -->
-    <div class="flex-1 overflow-y-auto mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg" ref="messagesContainer">
-      <div v-for="message in messages" :key="message.id" class="mb-4">
-        <div :class="[
-          'p-4 rounded-lg max-w-[80%]',
-          message.role === 'human' ? 'ml-auto bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-700'
-        ]">
-          {{ message.content }}
+    <!-- Chat Messages -->
+    <div ref="messagesContainer" class="px-4 py-2 space-y-4 bg-white dark:bg-gray-800 pb-[80px]">
+      <div v-for="message in messages" :key="message.id" :class="[
+        'max-w-3xl mx-auto p-4 rounded-lg max-w-[80%]',
+        message.role === 'human' ? 'ml-auto bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-700 dark:text-white'
+      ]">
+        <div class="prose max-w-none dark:prose-invert">
+          <p class="whitespace-pre-wrap">{{ message.content }}</p>
         </div>
       </div>
-      <div v-if="currentStreamingContent" class="mb-4">
-        <div class="p-4 rounded-lg max-w-[80%] bg-gray-100 dark:bg-gray-700">
-          {{ currentStreamingContent }}
+      <div v-if="isLoading" class="max-w-3xl mx-auto p-4 rounded-lg bg-gray-100 dark:bg-gray-700 mr-auto max-w-[80%]">
+        <div class="animate-pulse flex space-x-4">
+          <div class="flex-1 space-y-4 py-1">
+            <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
+            <div class="space-y-2">
+              <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded w-5/6"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Input Area -->
-    <div class="flex gap-2 bg-white dark:bg-gray-800 p-4 rounded-lg">
-      <InputText
-        v-model="newMessage"
-        placeholder="Type a message"
-        class="flex-1"
-        @keyup.enter="sendMessage"
-      />
-      <Button
-        icon="pi pi-send"
-        @click="sendMessage"
-        :disabled="isLoading || !newMessage.trim()"
-      />
-    </div>
-
-    <!-- Loading Indicator -->
-    <div v-if="isLoading" class="absolute bottom-20 left-1/2 transform -translate-x-1/2">
-      <i class="pi pi-spin pi-spinner mr-2"></i>
-      <span>AI is thinking...</span>
+    <div class="absolute bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800 shadow-lg">
+      <div class="max-w-3xl mx-auto">
+        <div class="flex gap-4">
+          <InputText
+            v-model="newMessage"
+            @keyup.enter="sendMessage"
+            placeholder="Type your message..."
+            class="flex-1"
+          />
+          <Button
+            icon="pi pi-send"
+            @click="sendMessage"
+            :disabled="!newMessage.trim() || isLoading"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- Config Button -->
@@ -272,12 +389,15 @@ const sendMessage = async () => {
       @update:config="updateConfig($event)"
     />
 
+    <!-- API Key Dialog -->
     <ApiKeyDialog
       v-model="showApiKeyDialog"
-      :apiKey="apiKey"
+      :apiKey="apiKeys[modelConfig?.provider || 'openai']"
       :error="error"
+      :provider="modelConfig?.provider || 'openai'"
+      :loading="isLoading"
       @submit="handleApiKeySubmit"
-      @update:apiKey="apiKey = $event"
+      @update:apiKey="apiKeys[modelConfig?.provider || 'openai'] = $event"
     />
   </main>
 </template>
@@ -292,5 +412,16 @@ const sendMessage = async () => {
 :deep(.p-inputtext::placeholder) {
   color: var(--text-color-secondary);
   opacity: 0.7;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.overflow-y-auto {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 </style>

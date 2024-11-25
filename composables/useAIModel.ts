@@ -1,9 +1,12 @@
 import { ref } from 'vue';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { ChatOpenAI } from '@langchain/openai';
+import { ChatAnthropic } from '@langchain/anthropic';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 export interface ModelConfig {
   modelName: string;
+  provider: 'openai' | 'anthropic';
   temperature: number;
   streaming: boolean;
   maxTokens: number;
@@ -15,37 +18,64 @@ export interface ModelConfig {
 export interface ModelOption {
   label: string;
   value: string;
+  provider: 'openai' | 'anthropic';
   maxTokens?: number;
   description?: string;
 }
 
 // Default models with their specifications
-const defaultModels: ModelOption[] = [
+export const defaultModels: ModelOption[] = [
   { 
     label: 'GPT-4 Turbo', 
     value: 'gpt-4-1106-preview',
+    provider: 'openai',
     maxTokens: 4096,
     description: 'Most capable GPT-4 model, better at tasks like writing, analysis, and coding'
   },
   { 
     label: 'GPT-4', 
     value: 'gpt-4',
+    provider: 'openai',
     maxTokens: 8192,
     description: 'More capable than any GPT-3.5 model, better at complex tasks'
   },
   { 
     label: 'GPT-3.5 Turbo', 
     value: 'gpt-3.5-turbo',
+    provider: 'openai',
     maxTokens: 4096,
     description: 'Most capable GPT-3.5 model, optimized for chat at 1/10th the cost of GPT-4'
+  },
+  {
+    label: 'Claude 3 Opus',
+    value: 'claude-3-opus-20240229',
+    provider: 'anthropic',
+    maxTokens: 4096,
+    description: 'Most capable Claude model, best for complex tasks'
+  },
+  {
+    label: 'Claude 3 Sonnet',
+    value: 'claude-3-sonnet-20240229',
+    provider: 'anthropic',
+    maxTokens: 4096,
+    description: 'Balanced model for most tasks'
+  },
+  {
+    label: 'Claude 3 Haiku',
+    value: 'claude-3-haiku-20240229',
+    provider: 'anthropic',
+    maxTokens: 4096,
+    description: 'Fastest and most compact Claude model'
   }
 ];
 
+// Default configuration
 export const defaultConfig: ModelConfig = {
   modelName: 'gpt-3.5-turbo',
+  provider: 'openai',
   temperature: 0.7,
   streaming: true,
-  maxTokens: 2000,
+  maxTokens: 4096,
   topP: 1,
   frequencyPenalty: 0,
   presencePenalty: 0,
@@ -58,7 +88,7 @@ When asked about data or statistics, you should provide the most recent informat
 If you're not sure about something, you should acknowledge that and suggest reliable sources for verification.`;
 
 export const useAIModel = () => {
-  const config = ref<ModelConfig>(loadConfig());
+  const config = ref<ModelConfig>({ ...defaultConfig });
   const model = ref<BaseChatModel | null>(null);
   const showSidebar = ref(false);
   const availableModels = ref<ModelOption[]>(defaultModels);
@@ -68,9 +98,16 @@ export const useAIModel = () => {
       const savedConfig = window?.localStorage?.getItem('ai_model_config');
       if (savedConfig) {
         const parsedConfig = JSON.parse(savedConfig);
-        // Validate all required fields are present
+        // Validate all required fields are present and set provider if missing
         const isValid = Object.keys(defaultConfig).every(key => key in parsedConfig);
         if (isValid) {
+          // Ensure provider is set based on the model if it's missing
+          if (!parsedConfig.provider) {
+            const selectedModel = defaultModels.find(m => m.value === parsedConfig.modelName);
+            if (selectedModel) {
+              parsedConfig.provider = selectedModel.provider;
+            }
+          }
           return parsedConfig;
         }
       }
@@ -90,32 +127,70 @@ export const useAIModel = () => {
 
   const initializeModel = async (apiKey: string) => {
     try {
-      model.value = new ChatOpenAI({
-        openAIApiKey: apiKey,
+      const selectedModel = defaultModels.find(m => m.value === config.value.modelName);
+      if (!selectedModel) {
+        throw new Error('Invalid model selected');
+      }
+
+      const modelConfig = {
         modelName: config.value.modelName,
         temperature: config.value.temperature,
-        streaming: config.value.streaming,
+        streaming: true, // Force streaming to be true
         maxTokens: config.value.maxTokens,
         topP: config.value.topP,
         frequencyPenalty: config.value.frequencyPenalty,
         presencePenalty: config.value.presencePenalty,
-      });
-      return true;
+      };
+
+      if (selectedModel.provider === 'openai') {
+        model.value = new ChatOpenAI({
+          openAIApiKey: apiKey,
+          ...modelConfig,
+        });
+      } else if (selectedModel.provider === 'anthropic') {
+        model.value = new ChatAnthropic({
+          anthropicApiKey: apiKey,
+          modelName: modelConfig.modelName,
+          temperature: modelConfig.temperature,
+          maxTokens: modelConfig.maxTokens,
+        });
+      }
+
+      // Test the connection
+      const response = await model.value.invoke([
+        new SystemMessage(selectedModel.provider === 'openai' 
+          ? "You are an AI assistant created by OpenAI."
+          : "You are Claude, an AI assistant created by Anthropic."),
+        new HumanMessage("Hello")
+      ]);
+
+      console.log('Model test response:', response);
+
     } catch (e) {
       console.error('Error initializing model:', e);
-      model.value = null;
-      return false;
+      throw e;
     }
   };
 
-  const updateConfig = async (newConfig: ModelConfig, apiKey: string) => {
-    config.value = { ...newConfig };
-    saveConfig(newConfig);
-    return await initializeModel(apiKey);
+  const updateConfig = (newConfig: Partial<ModelConfig>) => {
+    // Update the provider based on the selected model if modelName changes
+    if (newConfig.modelName) {
+      const selectedModel = defaultModels.find(m => m.value === newConfig.modelName);
+      if (selectedModel) {
+        newConfig.provider = selectedModel.provider;
+      }
+    }
+    
+    config.value = {
+      ...config.value,
+      ...newConfig,
+    };
+    saveConfig(config.value);
   };
 
   const resetConfig = () => {
     config.value = { ...defaultConfig };
+    saveConfig(config.value);
   };
 
   return {
@@ -123,6 +198,7 @@ export const useAIModel = () => {
     model,
     showSidebar,
     availableModels,
+    defaultConfig,
     initializeModel,
     updateConfig,
     resetConfig,
