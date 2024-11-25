@@ -51,13 +51,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import Dialog from 'primevue/dialog';
-import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
 
 interface Props {
   modelValue: boolean;
   apiKey: string;
-  error?: string | null;
+  error: string | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -67,13 +67,13 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean];
-  'update:apiKey': [value: string];
-  'submit': [value: string];
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'update:apiKey', value: string): void;
+  (e: 'submit', value: string): void;
 }>();
 
-const localApiKey = ref(props.apiKey);
 const loading = ref(false);
+const localApiKey = ref(props.apiKey);
 
 watch(() => props.apiKey, (newValue) => {
   localApiKey.value = newValue;
@@ -81,11 +81,14 @@ watch(() => props.apiKey, (newValue) => {
 
 const handleSubmit = async () => {
   if (!localApiKey.value) return;
-
+  
   loading.value = true;
-  emit('update:apiKey', localApiKey.value);
-  emit('submit', localApiKey.value);
-  loading.value = false;
+  try {
+    emit('update:apiKey', localApiKey.value);
+    emit('submit', localApiKey.value);
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 
@@ -95,37 +98,31 @@ const handleSubmit = async () => {
   max-width: 500px;
 }
 
-@media screen and (min-width: 768px) {
-  .api-key-dialog {
-    width: 500px;
-  }
-}
-
 :deep(.p-dialog-header) {
-  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+  padding-bottom: 1rem;
 }
 
 :deep(.p-dialog-content) {
-  padding: 0 1.5rem 1.5rem 1.5rem;
+  padding-bottom: 1.5rem;
 }
 
 :deep(.p-dialog-footer) {
-  padding: 0 1.5rem 1.5rem 1.5rem;
+  padding-top: 0;
 }
 
 .p-field {
   margin-bottom: 1rem;
 }
 
-.p-float-label {
-  margin-top: 1rem;
+:deep(.p-float-label) {
+  margin-bottom: 1rem;
 }
 
 :deep(.p-inputtext) {
   width: 100%;
 }
 
-:deep(.p-button) {
-  width: 100%;
+.text-primary {
+  color: var(--primary-color);
 }
 </style>
