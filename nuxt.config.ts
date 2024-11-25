@@ -66,6 +66,16 @@ interface CookieControlLocale {
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
+  build: {
+    transpile: ['primevue']
+  },
+
+  css: [
+    'primevue/resources/themes/lara-light-blue/theme.css',
+    'primevue/resources/primevue.css',
+    'primeicons/primeicons.css'
+  ],
+
   runtimeConfig: {
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
@@ -106,91 +116,16 @@ export default defineNuxtConfig({
   },
 
   modules: [
-    '@nuxtjs/i18n',
     '@nuxtjs/tailwindcss',
     '@nuxtjs/color-mode',
-    '@nuxtjs/device',
-    ['@dargmuesli/nuxt-cookie-control', {
-      cookieNameIsConsentGiven: 'ncc_c',
-      cookieNameCookiesEnabledIds: 'ncc_e',
-      isAcceptNecessaryButtonEnabled: true,
-      isModalForced: false,
-      isCookieIdVisible: false,
-      barPosition: 'bottom-full',
-      closeModalOnClickOutside: false,
-      colors: {
-        barBackground: '#fff',
-        barButtonBackground: '#4F46E5',
-        barButtonColor: '#fff',
-        barButtonHoverBackground: '#4338CA',
-        barTextColor: '#1F2937',
-        modalBackground: '#fff',
-        modalButtonBackground: '#4F46E5',
-        modalButtonColor: '#fff',
-        modalButtonHoverBackground: '#4338CA',
-        modalTextColor: '#1F2937',
-        checkboxActiveBackground: '#4F46E5',
-        checkboxInactiveBackground: '#E5E7EB',
-        checkboxDisabledBackground: '#D1D5DB',
-        checkboxActiveCircleBackground: '#fff',
-        checkboxInactiveCircleBackground: '#fff',
-        checkboxDisabledCircleBackground: '#fff',
-      },
-      cookies: {
-        necessary: [
-          {
-            id: 'necessary',
-            name: {
-              en: 'Necessary Cookies',
-              fr: 'Cookies Nécessaires',
-              ar: 'ملفات تعريف الارتباط الضرورية'
-            },
-            description: {
-              en: 'These cookies are required for the website to function properly. They enable basic functions like page navigation and access to secure areas of the website.',
-              fr: 'Ces cookies sont nécessaires au bon fonctionnement du site. Ils permettent les fonctions de base comme la navigation et l\'accès aux zones sécurisées du site.',
-              ar: 'هذه الملفات ضرورية لعمل الموقع بشكل صحيح. تمكن الوظائف الأساسية مثل التنقل في الصفحات والوصول إلى المناطق الآمنة في الموقع.'
-            },
-            default: true,
-            necessary: true
-          }
-        ],
-        optional: [
-          {
-            id: 'analytics',
-            name: {
-              en: 'Analytics Cookies',
-              fr: 'Cookies Analytiques',
-              ar: 'ملفات تعريف الارتباط التحليلية'
-            },
-            description: {
-              en: 'These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously.',
-              fr: 'Ces cookies nous aident à comprendre comment les visiteurs interagissent avec notre site en collectant et en rapportant des informations de manière anonyme.',
-              ar: 'تساعدنا هذه الملفات على فهم كيفية تفاعل الزوار مع موقعنا من خلال جمع المعلومات وإعداد التقارير بشكل مجهول.'
-            },
-            default: false
-          },
-          {
-            id: 'functional',
-            name: {
-              en: 'Functional Cookies',
-              fr: 'Cookies Fonctionnels',
-              ar: 'ملفات تعريف الارتباط الوظيفية'
-            },
-            description: {
-              en: 'These cookies enable enhanced functionality and personalization, such as live chat and other embedded content.',
-              fr: 'Ces cookies permettent des fonctionnalités améliorées et une personnalisation, comme le chat en direct et d\'autres contenus intégrés.',
-              ar: 'تمكن هذه الملفات الوظائف المحسنة والتخصيص، مثل الدردشة المباشرة والمحتوى المضمن الآخر.'
-            },
-            default: false
-          }
-        ]
-      }
-    }],
-    'nuxt-icon',
+    '@nuxtjs/i18n',
+    '@pinia/nuxt',
     '@nuxt/content',
     '@nuxt/image',
+    '@nuxtjs/device',
     '@nuxtjs/google-fonts',
-    '@pinia/nuxt',
+    '@dargmuesli/nuxt-cookie-control',
+    'nuxt-icon'
   ],
 
   i18n: {
