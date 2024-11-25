@@ -60,11 +60,14 @@ import ToggleButton from 'primevue/togglebutton'
 import Toolbar from 'primevue/toolbar'
 import Tree from 'primevue/tree'
 import TreeTable from 'primevue/treetable'
+import Tooltip from 'primevue/tooltip'
 
 export default defineNuxtPlugin((nuxtApp: NuxtApp) => {
     nuxtApp.vueApp.use(PrimeVue, { ripple: true })
     nuxtApp.vueApp.use(ToastService)
     nuxtApp.vueApp.use(ConfirmationService)
+
+    nuxtApp.vueApp.directive('tooltip', Tooltip)
 
     // Register PrimeVue components
     nuxtApp.vueApp.component('Button', Button)

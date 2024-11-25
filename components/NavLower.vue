@@ -33,6 +33,22 @@ const items = [
     icon: 'pi pi-book'
   },
   {
+    label: 'AI',
+    icon: 'pi pi-star',
+    items: [
+      {
+        label: 'Chat',
+        command: () => navigateTo('/ai/chat'),
+        icon: 'pi pi-minus'
+      },
+      {
+        label: '404',
+        command: () => navigateTo('/404'),
+        icon: 'pi pi-exclamation-triangle'
+      }
+    ]
+  },
+  {
     label: 'Features',
     icon: 'pi pi-star',
     items: [
