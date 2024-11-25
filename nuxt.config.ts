@@ -120,7 +120,36 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
     '@nuxtjs/color-mode',
-    '@nuxtjs/i18n',
+    ['@nuxtjs/i18n', {
+      baseUrl: process.env.NUXT_PUBLIC_SITE_URL,
+      defaultLocale: 'en',
+      strategy: 'prefix_except_default',
+      langDir: "locales/",
+      vueI18n: './i18n.config.ts',
+      locales: [
+        { 
+          code: "en",
+          name: "English",
+          file: "en-US.json",
+          iso: "en-US",
+          language: "en"
+        },
+        { 
+          code: "fr",
+          name: "Français",
+          file: "fr-FR.json",
+          iso: "fr-FR",
+          language: "fr"
+        },
+        { 
+          code: "ar",
+          name: "العربية",
+          file: "ar-AR.json",
+          iso: "ar-SA",
+          language: "ar"
+        }
+      ]
+    }],
     '@pinia/nuxt',
     '@nuxt/content',
     '@nuxt/image',
@@ -129,37 +158,6 @@ export default defineNuxtConfig({
     '@dargmuesli/nuxt-cookie-control',
     'nuxt-icon'
   ],
-
-  i18n: {
-    baseUrl: process.env.NUXT_PUBLIC_SITE_URL,
-    vueI18n: './i18n.config.ts',
-    defaultLocale: 'en',
-    strategy: 'prefix_except_default',
-    langDir: "locales/",
-    locales: [
-      { 
-        code: "en",
-        name: "English",
-        file: "en-US.json",
-        iso: "en-US",
-        language: "en"
-      },
-      { 
-        code: "fr",
-        name: "Français",
-        file: "fr-FR.json",
-        iso: "fr-FR",
-        language: "fr"
-      },
-      { 
-        code: "ar",
-        name: "العربية",
-        file: "ar-AR.json",
-        iso: "ar-SA",
-        language: "ar"
-      }
-    ],
-  },
 
   cookieControl: {
     locales: ['en', 'fr', 'ar']
