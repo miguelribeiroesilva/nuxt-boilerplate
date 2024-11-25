@@ -34,17 +34,17 @@ const items = [
   },
   {
     label: 'AI',
-    icon: 'pi pi-star',
+    icon: 'pi pi-brain',
     items: [
       {
         label: 'Chat',
-        command: () => navigateTo('/ai/chat'),
-        icon: 'pi pi-minus'
+        icon: 'pi pi-comments',
+        command: () => navigateTo('/ai/chat')
       },
       {
-        label: '404',
-        command: () => navigateTo('/404'),
-        icon: 'pi pi-exclamation-triangle'
+        label: 'Chat with Tools',
+        icon: 'pi pi-cog',
+        command: () => navigateTo('/ai/chat-tools')
       }
     ]
   },
