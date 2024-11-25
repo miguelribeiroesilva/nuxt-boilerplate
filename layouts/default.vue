@@ -92,7 +92,7 @@ useLocaleHead({
               <NuxtLink
                 class="flex rounded-lg border border-transparent px-4 py-1.5 hover:cursor-pointer hover:opacity-70 dark:hover:opacity-90"
                 target="_blank"
-                to="https://github.com/renegadevi/nuxt-boilerplate"
+                to="https://github.com/miguelribeiroesilva/nuxt-boilerplate"
                 aria-label="Github"
                 ><span class="dark:hidden"
                   ><Icon name="mdi:github" size="auto" color="black" />

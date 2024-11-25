@@ -4,10 +4,11 @@ A ready to use Nuxt 3 boilerplate
 
 **Live Demo**: https://nuxt-boilerplate-main.vercel.app/
 
-**StackBlitz**: https://stackblitz.com/github/renegadevi/nuxt-boilerplate
 
-![screenshot](https://raw.githubusercontent.com/renegadevi/nuxt-boilerplate/main/.github/screenshot.png)
-![lighthouse](https://github.com/renegadevi/nuxt-boilerplate/blob/e806bae6efec29a19579d7cf76ef683ffe980917/.github/lighthouse.png)
+
+![screenshot](https://raw.githubusercontent.com/miguelribeiroesilva/nuxt-boilerplate/main/.github/screenshot.png)
+
+![lighthouse](https://github.com/miguelribeiroesilva/nuxt-boilerplate/blob/e806bae6efec29a19579d7cf76ef683ffe980917/.github/lighthouse.png)
 
 ## Quick setup (TLDR;)
 
@@ -28,7 +29,7 @@ pnpm run dev
 ### Clone repo
 
 ```bash
-git clone https://github.com/renegadevi/nuxt-boilerplate.git
+git clone https://github.com/miguelribeiroesilva/nuxt-boilerplate.git
 cd nuxt-boilerplate
 ```
 
