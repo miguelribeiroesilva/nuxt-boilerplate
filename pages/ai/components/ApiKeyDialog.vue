@@ -57,11 +57,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
+import { ref, onMounted } from 'vue'
 
 interface Props {
   modelValue: boolean
@@ -70,12 +70,12 @@ interface Props {
   loading?: boolean
 }
 
+const props = defineProps<Props>()
+
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'submit', value: string): void
 }>()
-
-const props = defineProps<Props>()
 
 const { validateApiKey, getStoredApiKey } = useApiKeyValidation();
 const localApiKey = ref('');

@@ -1,8 +1,10 @@
 {
-  "locale.en-US": "English",
-  "locale.fr-FR": "French",
-  "locale.ar-AR": "العربية",
-  "locale.dir": "ltr",
+  "locale": {
+    "dir": "ltr",
+    "en": "English",
+    "fr": "French",
+    "ar": "العربية"
+  },
   "site": {
     "name": "Nuxt Boilerplate"
   },

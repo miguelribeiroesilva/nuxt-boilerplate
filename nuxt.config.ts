@@ -91,14 +91,18 @@ export default defineNuxtConfig({
   components: [
     {
       path: '~/components',
+      extensions: ['.vue'],
+      exclude: ['primevue/**']
     },
     {
       path: '~/components/global',
-      global: true
+      global: true,
+      extensions: ['.vue']
     },
     {
       path: '~/pages/ai/components',
-      global: true
+      global: true,
+      extensions: ['.vue']
     }
   ],
 
@@ -139,9 +143,34 @@ export default defineNuxtConfig({
   ],
 
   primevue: {
+    cssLayerOrder: 'tailwind-base, primevue, tailwind-utilities',
+    options: {
+      ripple: true,
+      inputStyle: 'filled'
+    },
+    components: {
+      include: [
+        'Button',
+        'Calendar',
+        'Column',
+        'ConfirmDialog',
+        'DataTable',
+        'Dialog',
+        'Dropdown',
+        'InputText',
+        'Menubar',
+        'Sidebar',
+        'Slider',
+        'Textarea',
+        'Toast',
+        'Tree'
+      ]
+    },
     directives: {
-      tooltip: true,
-      ripple: true
+      include: ['tooltip', 'ripple']
+    },
+    composables: {
+      include: ['useToast', 'useConfirm']
     }
   },
 
