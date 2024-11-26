@@ -20,7 +20,7 @@
       </div>
     </template>
 
-    <div class="p-4">
+    <div class="p-1">
       <!-- Model Selection -->
       <div class="mb-6">
         <h3 class="text-lg font-medium mb-2">Model</h3>
@@ -135,17 +135,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
 import Sidebar from 'primevue/sidebar';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import Slider from 'primevue/slider';
-import { type ModelConfig, type ModelOption, useAIModel } from '~/composables/useAIModel';
+import { type ModelConfig, type ModelOption } from '~/composables/useAIModel';
 
 interface Props {
   modelValue: boolean;
-  config: ModelConfig;
-  availableModels: ModelOption[];
+  config?: ModelConfig;
+  availableModels?: ModelOption[];
+  model?: any;
 }
 
 const props = defineProps<Props>();
@@ -153,20 +153,25 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   'update:modelValue': [value: boolean];
   'update:config': [value: ModelConfig];
+  'update:model': [value: any];
 }>();
 
 const { defaultConfig } = useAIModel();
-const localConfig = ref<ModelConfig>({ ...props.config });
+const localConfig = ref<ModelConfig>(props.config ? { ...props.config } : { ...defaultConfig });
 
 watch(() => props.config, (newConfig) => {
-  localConfig.value = { ...newConfig };
+  if (newConfig) {
+    localConfig.value = { ...newConfig };
+  }
 }, { deep: true });
 
 const updateConfig = () => {
   emit('update:config', { ...localConfig.value });
+  emit('update:model', props.model); // Emit model updates as well
 };
 
 const resetConfig = () => {
+  localConfig.value = { ...defaultConfig };
   emit('update:config', { ...defaultConfig });
 };
 </script>

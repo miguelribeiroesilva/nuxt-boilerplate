@@ -1,8 +1,10 @@
 {
-  "locale.en": "English",
-  "locale.fr-FR": "Français",
-  "locale.ar-AR": "العربية",
-  "locale.dir": "ltr",
+  "locale": {
+    "dir": "ltr",
+    "en": "English",
+    "fr": "Français",
+    "ar": "العربية"
+  },
   "site": {
     "name": "Nuxt Boilerplate"
   },
@@ -34,7 +36,7 @@
     "index": {
       "meta": {
         "title": "Accueil",
-        "description": "Accueil"
+        "description": "Page d'accueil"
       },
       "link": "Accueil",
       "hero": {
@@ -45,18 +47,21 @@
       "features": {
         "googleFonts": "Polices Google",
         "eslint": "ESLint",
-        "Typescript": "Typescript",
-        "Prettier": "Prettier",
+        "typescript": "TypeScript",
+        "prettier": "Prettier",
         "imageOptim": "Optimisation d'images",
-        "TailwindCSS": "TailwindCSS",
-        "darkMode": "Mode sombre",
-        "i18n": "Localisation (i18n)",
+        "tailwindcss": "TailwindCSS",
+        "i18n": "Internationalisation",
+        "colorMode": "Mode de couleur",
+        "deviceDetection": "Détection d'appareil",
+        "cookieControl": "Contrôle des cookies",
+        "pinia": "Gestion d'état Pinia",
+        "iconify": "Iconify",
+        "content": "Nuxt Content",
+        "darkMode": "Clair / Sombre",
+        "cookies": "Cookies",
         "postcss": "PostCSS",
-        "lightHouse": "Lighthouse 100%",
-        "deviceDetect": "Détection de périphérique",
-        "cookies": "Bannière de cookies",
-        "Iconify": "Iconify",
-        "Pinia": "Pinia"
+        "lighthouse": "Lighthouse"
       }
     },
     "about": {

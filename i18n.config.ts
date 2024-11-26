@@ -1,9 +1,29 @@
-import type { LocaleObject } from '@nuxtjs/i18n'
-import { defineI18nConfig } from '#imports'
+import en from "./locales/en.json";
+import fr from "./locales/fr.json";
+import ar from "./locales/ar.json";
 
 export default defineI18nConfig(() => ({
   legacy: false,
-  locale: 'en',
-  fallbackLocale: 'en',
-  messages: {}
+  langDir: "./locales",
+  messages: {
+    "en": en,
+    "fr": fr,
+    "ar": ar
+  },
+  baseUrl: process.env.NUXT_PUBLIC_SITE_URL,
+  locales: [
+    {
+      code: "en",
+      iso: "en-US",
+      isCatchallLocale: true,
+    },
+    {
+      code: "fr",
+      iso: "fr-FR"
+    },
+    {
+      code: "ar",
+      iso: "ar-AR"
+    }
+  ],
 }))

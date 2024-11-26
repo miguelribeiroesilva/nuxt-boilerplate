@@ -1,6 +1,6 @@
 <template>
   <form :class="$attrs.class">
-    <label for="themes"><Icon name="gg:dark-mode" size="1.5em" /></label>
+    <label for="themes"><Icon name="gg:dark-mode" size="16px" /></label>
     <select
       id="themes"
       v-model="$colorMode.preference"
@@ -33,7 +33,6 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 defineOptions({
   inheritAttrs: false

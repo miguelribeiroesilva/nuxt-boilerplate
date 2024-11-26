@@ -1,21 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { defineNuxtConfig } from "nuxt/config";
-import { fileURLToPath } from 'url';
-
-interface CustomCookie {
-  id: string;
-  name: {
-    en: string;
-    fr: string;
-    ar: string;
-  };
-  description: {
-    en: string;
-    fr: string;
-    ar: string;
-  };
-  isPreselected?: boolean;
-}
 
 // Define an interface for your locale structure
 interface LocaleMessages {
@@ -63,6 +47,21 @@ interface CookieControlLocale {
   }
 }
 
+interface CustomCookie {
+  id: string;
+  name: {
+    en: string;
+    fr: string;
+    ar: string;
+  };
+  description: {
+    en: string;
+    fr: string;
+    ar: string;
+  };
+  isPreselected?: boolean;
+}
+
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
@@ -71,11 +70,66 @@ export default defineNuxtConfig({
   },
 
   css: [
-    'primevue/resources/themes/lara-light-blue/theme.css',
+    'primevue/resources/themes/lara-light-green/theme.css',
     'primevue/resources/primevue.css',
     'primeicons/primeicons.css',
     './assets/css/tailwind.css',
     './assets/css/scrollbar.css'
+  ],
+
+  imports: {
+    dirs: [
+      'composables/**',
+      'components',
+      'pages/ai/components'
+    ],
+    imports: [
+      {
+        from: 'vue',
+        imports: [
+          'ref',
+          'computed',
+          'onMounted',
+          'watch',
+          'reactive',
+          'nextTick',
+          'defineProps',
+          'defineEmits'
+        ],
+      },
+      {
+        from: 'primevue/useconfirm',
+        name: 'useConfirm',
+        as: 'useConfirm'
+      },
+      {
+        from: 'primevue/usetoast',
+        name: 'useToast',
+        as: 'useToast'
+      },
+      {
+        from: 'primevue/usedialog',
+        name: 'useDialog',
+        as: 'useDialog'
+      }
+    ],
+  },
+
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false,
+    },
+    {
+      path: '~/components/global',
+      pathPrefix: false,
+      global: true
+    },
+    {
+      path: '~/pages/ai/components',
+      pathPrefix: false,
+      global: true
+    }
   ],
 
   runtimeConfig: {
@@ -89,27 +143,9 @@ export default defineNuxtConfig({
       firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
       firebaseAppId: process.env.FIREBASE_APP_ID,
       locales: [
-        { 
-          code: "en",
-          name: "English",
-          file: "en-US.json",
-          iso: "en-US",
-          language: "en"
-        },
-        { 
-          code: "fr",
-          name: "Français",
-          file: "fr-FR.json",
-          iso: "fr-FR",
-          language: "fr"
-        },
-        { 
-          code: "ar",
-          name: "العربية",
-          file: "ar-AR.json",
-          iso: "ar-SA",
-          language: "ar"
-        }
+        { code: 'en', name: 'English' },
+        { code: 'fr', name: 'Français' },
+        { code: 'ar', name: 'العربية' }
       ]
     }
   },
@@ -120,45 +156,51 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxtjs/tailwindcss',
-    '@nuxtjs/color-mode',
-    ['@nuxtjs/i18n', {
-      baseUrl: process.env.NUXT_PUBLIC_SITE_URL,
-      defaultLocale: 'en',
-      strategy: 'prefix_except_default',
-      langDir: "locales/",
-      vueI18n: './i18n.config.ts',
-      locales: [
-        { 
-          code: "en",
-          name: "English",
-          file: "en-US.json",
-          iso: "en-US",
-          language: "en"
-        },
-        { 
-          code: "fr",
-          name: "Français",
-          file: "fr-FR.json",
-          iso: "fr-FR",
-          language: "fr"
-        },
-        { 
-          code: "ar",
-          name: "العربية",
-          file: "ar-AR.json",
-          iso: "ar-SA",
-          language: "ar"
-        }
-      ]
-    }],
+    'nuxt-icon',
     '@pinia/nuxt',
-    '@nuxt/content',
+    '@nuxtjs/color-mode',
+    '@nuxtjs/i18n',
+    '@dargmuesli/nuxt-cookie-control',
     '@nuxt/image',
+    '@nuxt/content',
     '@nuxtjs/device',
     '@nuxtjs/google-fonts',
-    '@dargmuesli/nuxt-cookie-control',
-    'nuxt-icon'
   ],
+
+  primevue: {
+    components: {
+      include: ['Button', 'Dialog', 'Toast', 'Dropdown', 'InputText', 'Calendar', 'DataTable', 'Column', 'ConfirmDialog']
+    },
+    directives: ['tooltip', 'ripple'],
+    composables: ['useConfirm', 'useToast', 'useDialog']
+  },
+
+  i18n: {
+    vueI18n: "./i18n.config.ts",
+    detectBrowserLanguage: {
+      useCookie: false,
+      alwaysRedirect: true,
+      fallbackLocale: "en",
+      redirectOn: "root",
+    },
+    locales: [
+      {
+        code: "en",
+        name: "English",
+        iso: "en-US"
+      },
+      {
+        code: "fr",
+        name: "Français",
+        iso: "fr-FR"
+      },
+      {
+        code: "ar",
+        name: "العربية",
+        iso: "ar-AR"
+      }
+    ]
+  },
 
   cookieControl: {
     locales: ['en', 'fr', 'ar']

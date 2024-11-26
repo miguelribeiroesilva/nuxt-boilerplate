@@ -1,8 +1,10 @@
 {
-  "locale.en-US": "English",
-  "locale.fr-FR": "French",
-  "locale.ar-AR": "العربية",
-  "locale.dir": "ltr",
+  "locale": {
+    "dir": "ltr",
+    "en": "English",
+    "fr-FR": "French",
+    "ar-AR": "العربية"
+  },
   "site": {
     "name": "Nuxt Boilerplate"
   },
@@ -45,24 +47,21 @@
       "features": {
         "googleFonts": "Google Fonts",
         "eslint": "ESLint",
-        "Typescript": "Typescript",
-        "Prettier": "Prettier",
+        "typescript": "TypeScript",
+        "prettier": "Prettier",
         "imageOptim": "Image optimization",
-        "TailwindCSS": "TailwindCSS",
+        "tailwindcss": "TailwindCSS",
         "i18n": "Internationalization",
         "colorMode": "Color mode",
         "deviceDetection": "Device detection",
         "cookieControl": "Cookie control",
         "pinia": "Pinia state management",
-        "icons": "Icons",
+        "iconify": "Iconify",
         "content": "Nuxt Content",
-        "Pinia": "Pinia State Management",
-        "deviceDetect": "Device Detection",
-        "Iconify": "Iconify",
         "darkMode": "Dark / Light",
         "cookies": "Cookies",
         "postcss": "PostCSS",
-        "lightHouse": "Lighthouse"
+        "lighthouse": "Lighthouse"
       }
     },
     "about": {

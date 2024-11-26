@@ -165,4 +165,10 @@ const items = [
 :deep(.p-menuitem-icon) {
   color: inherit;
 }
+:deep(.p-menuitem-link) {
+    padding-top: 0.25rem !important;
+    padding-right: 0.5rem !important;
+    padding-bottom: 0.25rem !important;
+    padding-left: 0.5rem !important;
+}
 </style>

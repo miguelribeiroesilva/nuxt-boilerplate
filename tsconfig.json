@@ -9,11 +9,9 @@
     },
     "types": [
       "nuxt",
-      "#app",
       "@nuxtjs/i18n",
       "@pinia/nuxt",
-      "vue",
-      "@types/vue"
+      "vue"
     ],
     "moduleResolution": "node",
     "esModuleInterop": true,

@@ -53,13 +53,13 @@ useSeoMeta({
           <Icon
             name="heroicons:check-circle"
             class="me-2 text-3xl text-green-500 dark:text-green-300"
-          />{{ $t("pages.index.features.TailwindCSS") }}
+          />{{ $t("pages.index.features.tailwindcss") }}
         </li>
         <li class="py-2">
           <Icon
             name="heroicons:check-circle"
             class="me-2 text-3xl text-green-500 dark:text-green-300"
-          />{{ $t("pages.index.features.Prettier") }}
+          />{{ $t("pages.index.features.prettier") }}
         </li>
         <li class="py-2">
           <Icon
@@ -89,13 +89,13 @@ useSeoMeta({
           <Icon
             name="heroicons:check-circle"
             class="me-2 text-3xl text-green-500 dark:text-green-300"
-          />{{ $t("pages.index.features.Iconify") }}
+          />{{ $t("pages.index.features.iconify") }}
         </li>
         <li class="py-2">
           <Icon
             name="heroicons:check-circle"
             class="me-2 text-3xl text-green-500 dark:text-green-300"
-          />{{ $t("pages.index.features.Typescript") }}
+          />{{ $t("pages.index.features.typescript") }}
         </li>
         <li class="py-2">
           <Icon
@@ -107,13 +107,13 @@ useSeoMeta({
           <Icon
             name="heroicons:check-circle"
             class="me-2 text-3xl text-green-500 dark:text-green-300"
-          />{{ $t("pages.index.features.deviceDetect") }}
+          />{{ $t("pages.index.features.deviceDetection") }}
         </li>
         <li class="py-2">
           <Icon
             name="heroicons:check-circle"
             class="me-2 text-3xl text-green-500 dark:text-green-300"
-          />{{ $t("pages.index.features.Pinia") }}
+          />{{ $t("pages.index.features.pinia") }}
         </li>
         <li class="py-2">
           <Icon
@@ -131,7 +131,7 @@ useSeoMeta({
           <Icon
             name="heroicons:check-circle"
             class="me-2 text-3xl text-green-500 dark:text-green-300"
-          />{{ $t("pages.index.features.lightHouse") }}
+          />{{ $t("pages.index.features.lighthouse") }}
         </li>
       </ul>
     </section>

@@ -1,10 +1,47 @@
+<template>
+  <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
+    <div class="flex-none p-1 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">AI Chat</h1>
+    </div>
+
+    <div class="flex-1 mt-4 overflow-hidden">
+      <MessagesArea
+        :messages="messages"
+        :is-loading="isLoading"
+        :hide-scrollbar="true"
+      />
+    </div>
+
+    <div class="flex-none p-1 border-t dark:border-gray-700">
+      <ChatInput
+        v-model="newMessage"
+        :is-loading="isLoading"
+        @send-message="sendMessage"
+      />
+    </div>
+
+    <ApiKeyDialog
+      v-model="showApiKeyDialog"
+      v-model:apiKey="apiKey"
+      :error="error"
+      provider="openai"
+      @submit="handleApiKeySubmit"
+    />
+
+    <ModelConfigSidebar
+      v-model="showSidebar"
+      :model="model"
+      :config="modelConfig"
+      :available-models="availableModels"
+      @update:config="updateConfig"
+    />
+  </div>
+</template>
+
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { useFirebase } from '~/composables/useFirebase';
-import ApiKeyDialog from './components/ApiKeyDialog.vue';
 
 interface Message {
   role: 'human' | 'ai' | 'system';
@@ -12,6 +49,7 @@ interface Message {
   timestamp: Date | Timestamp;
 }
 
+// Component state
 const messages = ref<Message[]>([]);
 const newMessage = ref('');
 const isLoading = ref(false);
@@ -19,6 +57,10 @@ const apiKey = ref('');
 const showApiKeyDialog = ref(false);
 const chat = ref<ChatOpenAI | null>(null);
 const error = ref<string | null>(null);
+const showSidebar = ref(false);
+const model = ref('');
+const modelConfig = ref({});
+const availableModels = ref([]);
 
 // Get Firestore instance and utils
 const { firestore, formatTimestamp } = useFirebase();
@@ -29,17 +71,13 @@ const validateApiKey = (key: string): boolean => {
 };
 
 const initializeChat = async (key: string) => {
-  if (!key) {
-    error.value = 'API key is required';
-    return;
-  }
-
   if (!validateApiKey(key)) {
     error.value = 'Invalid API key format. Key should start with "sk-"';
     return;
   }
 
   try {
+    // Initialize the chat model
     chat.value = new ChatOpenAI({
       openAIApiKey: key.trim(),
       temperature: 0.7,
@@ -49,14 +87,13 @@ const initializeChat = async (key: string) => {
     await chat.value.invoke([new HumanMessage('test')]);
 
     if (window?.localStorage) {
-      console.log(key);
       window.localStorage.setItem('openai_api_key', key);
     }
     showApiKeyDialog.value = false;
     error.value = null;
   } catch (e) {
-    console.error('Error validating API key:', e);
-    error.value = 'Invalid API key. Please check your OpenAI API key.';
+    console.error('Error initializing chat:', e);
+    error.value = 'Failed to initialize chat with API key.';
     chat.value = null;
     if (window?.localStorage) {
       window.localStorage.removeItem('openai_api_key');
@@ -64,13 +101,54 @@ const initializeChat = async (key: string) => {
   }
 };
 
+const sendMessage = async () => {
+  if (!newMessage.value.trim() || isLoading.value || !chat.value || !firestore) return;
+
+  const messageContent = newMessage.value.trim();
+  newMessage.value = '';
+
+  try {
+    isLoading.value = true;
+
+    // Add user message to Firestore
+    await addDoc(collection(firestore, 'messages'), {
+      content: messageContent,
+      role: 'human',
+      timestamp: serverTimestamp(),
+    });
+
+    // Get AI response
+    const response = await chat.value.invoke([
+      new SystemMessage('You are a helpful AI assistant.'),
+      new HumanMessage(messageContent)
+    ]);
+
+    // Add AI response to Firestore
+    await addDoc(collection(firestore, 'messages'), {
+      content: response.content,
+      role: 'ai',
+      timestamp: serverTimestamp(),
+    });
+
+  } catch (e) {
+    console.error('Error:', e);
+    error.value = 'Failed to send message. Please try again.';
+
+    if (e.toString().includes('API key')) {
+      error.value = 'Invalid API key. Please check your API key.';
+      showApiKeyDialog.value = true;
+      chat.value = null;
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 onMounted(async () => {
   try {
     const savedKey = window?.localStorage?.getItem('openai_api_key');
-    console.log(savedKey);
     if (savedKey) {
-      apiKey.value = savedKey;
-      initializeChat(savedKey);
+      await initializeChat(savedKey);
     } else {
       showApiKeyDialog.value = true;
     }
@@ -78,20 +156,18 @@ onMounted(async () => {
     if (!firestore) return;
 
     // Subscribe to messages
-    const messagesRef = collection(firestore, 'chat-messages');
+    const messagesRef = collection(firestore, 'messages');
     const q = query(messagesRef, orderBy('timestamp', 'asc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       messages.value = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
-          ...data,
-          timestamp: data.timestamp || new Date(),
-        } as Message;
+          content: data.content,
+          role: data.role,
+          timestamp: data.timestamp ? formatTimestamp(data.timestamp) : 'Just now',
+        };
       });
-    }, (err) => {
-      console.error('Error getting messages:', err);
-      error.value = 'Failed to load messages. Please refresh the page.';
     });
 
     // Cleanup subscription on component unmount
@@ -102,166 +178,28 @@ onMounted(async () => {
   }
 });
 
-const formatMessages = () => {
-  return messages.value.map(msg => {
-    switch (msg.role) {
-      case 'human':
-        return new HumanMessage(msg.content);
-      case 'ai':
-        return new AIMessage(msg.content);
-      case 'system':
-        return new SystemMessage(msg.content);
-    }
-  });
+const handleApiKeySubmit = async (key: string) => {
+  try {
+    apiKey.value = key;
+    await initializeChat(key);
+  } catch (e) {
+    console.error('Error submitting API key:', e);
+    error.value = 'Failed to initialize with the provided API key.';
+  }
 };
 
-const sendMessage = async () => {
-  if (!newMessage.value.trim() || isLoading.value || !chat.value || !firestore) return;
-
-  const userMessage = {
-    role: 'human' as const,
-    content: newMessage.value,
-    timestamp: new Date()
-  };
-
-  isLoading.value = true;
-  newMessage.value = '';
-  error.value = null;
-
-  try {
-    // Add user message to Firestore
-    const messagesRef = collection(firestore, 'chat-messages');
-    await addDoc(messagesRef, {
-      ...userMessage,
-      timestamp: serverTimestamp()
-    });
-
-    const formattedMessages = formatMessages();
-    const response = await chat.value.call(formattedMessages);
-
-    // Add AI response to Firestore
-    await addDoc(messagesRef, {
-      role: 'ai',
-      content: response.content,
-      timestamp: serverTimestamp()
-    });
-
-  } catch (e) {
-    console.error('Error:', e);
-    error.value = 'Failed to send message. Please try again.';
-    // Add error message to Firestore
-    if (firestore) {
-      try {
-        const messagesRef = collection(firestore, 'chat-messages');
-        await addDoc(messagesRef, {
-          role: 'system',
-          content: 'Sorry, there was an error processing your message.',
-          timestamp: serverTimestamp()
-        });
-      } catch (firestoreError) {
-        console.error('Error saving error message:', firestoreError);
-      }
-    }
-  } finally {
-    isLoading.value = false;
-  }
+const updateConfig = (config: any) => {
+  modelConfig.value = config;
 };
 </script>
 
-<template>
-  <div class="flex flex-col h-full">
-    <ApiKeyDialog
-      v-model="showApiKeyDialog"
-      v-model:apiKey="apiKey"
-      :error="error"
-      provider="openai"
-      @submit="initializeChat"
-    />
-
-    <div class="flex-1 overflow-y-auto">
-      <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">AI Chat</h1>
-        <Button
-          icon="pi pi-key"
-          severity="secondary"
-          text
-          @click="showApiKeyDialog = true"
-          v-tooltip.bottom="'Configure OpenAI API Key'"
-        />
-      </div>
-
-      <!-- Error Message -->
-      <Message v-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
-
-      <!-- Messages Container -->
-      <div class="flex-1 mb-4 bg-white dark:bg-slate-800 rounded-lg p-4">
-        <div v-for="(message, index) in messages" :key="index" class="mb-4">
-          <div
-            :class="{
-              'flex gap-4': true,
-              'justify-end': message.role === 'human'
-            }"
-          >
-            <div
-              :class="{
-                'max-w-[80%] rounded-lg p-3': true,
-                'bg-primary-50 dark:bg-primary-900/30': message.role === 'human',
-                'bg-emerald-50 dark:bg-emerald-900/30': message.role === 'ai',
-                'bg-sky-50 dark:bg-sky-900/30': message.role === 'system'
-              }"
-            >
-              <div class="flex items-center gap-2 mb-1">
-                <span class="font-semibold">
-                  {{ message.role === 'human' ? 'You' : message.role === 'ai' ? 'AI' : 'System' }}
-                </span>
-                <span class="text-xs text-gray-500">
-                  {{ formatTimestamp(message.timestamp) }}
-                </span>
-              </div>
-              <p class="whitespace-pre-wrap">{{ message.content }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Input Area -->
-      <div class="sticky bottom-0 bg-white dark:bg-gray-900 pt-4">
-        <div class="flex gap-2">
-          <InputText
-            v-model="newMessage"
-            placeholder="Type your message..."
-            class="flex-1 !bg-white dark:!bg-gray-900 !border-gray-300 dark:!border-gray-600"
-            @keyup.enter="sendMessage"
-            :disabled="isLoading || !chat"
-          />
-          <Button
-            icon="pi pi-send"
-            @click="sendMessage"
-            :loading="isLoading"
-            :disabled="!newMessage.trim() || !chat"
-          />
-        </div>
-
-        <!-- Help text if API key is not set -->
-        <div v-if="!chat" class="text-sm text-gray-500 mt-2">
-          Click the key icon in the top right to set up your OpenAI API key
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <style scoped>
-.p-inputtext {
-  color: var(--text-color);
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-.p-inputtext::placeholder {
-  color: var(--text-color-secondary);
-}
-
-:deep(.p-inputtext:enabled:focus) {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 1px var(--primary-color);
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 </style>

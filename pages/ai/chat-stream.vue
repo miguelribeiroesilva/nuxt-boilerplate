@@ -1,25 +1,49 @@
+<template>
+  <main class="flex flex-col h-screen bg-white dark:bg-gray-800">
+    <div class="flex-none p-1 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Streaming Chat</h1>
+    </div>
+
+    <div class="flex-1 mt-4 overflow-hidden">
+      <MessagesArea
+        :messages="messages"
+        :is-loading="isLoading"
+        :hide-scrollbar="true"
+      />
+    </div>
+
+    <div class="flex-none p-1 border-t dark:border-gray-700">
+      <ChatInput
+        v-model="newMessage"
+        :is-loading="isLoading"
+        @send-message="sendMessage"
+      />
+    </div>
+
+    <ModelConfigSidebar
+      v-model="showSidebar"
+      :model="model"
+      :config="modelConfig"
+      :available-models="availableModels"
+      @update:config="updateConfig"
+    />
+  </main>
+</template>
+
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick, onUnmounted, computed } from 'vue'; // Update Vue import to ensure compatibility with Nuxt 3
-import { ChatOpenAI } from '@langchain/openai';
-import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp, updateDoc } from 'firebase/firestore';
-import { useFirebase } from '~/composables/useFirebase';
-import { useAIModel } from '~/composables/useAIModel';
-import ApiKeyDialog from './components/ApiKeyDialog.vue';
-import ModelConfigSidebar from './components/ModelConfigSidebar.vue';
-import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
-import Message from 'primevue/message';
+import { collection, query, orderBy, onSnapshot, updateDoc, Timestamp, serverTimestamp, addDoc } from 'firebase/firestore'
+import ApiKeyDialog from './components/ApiKeyDialog.vue'
+import ModelConfigSidebar from './components/ModelConfigSidebar.vue'
 
 interface Message {
-  id?: string;
-  role: 'human' | 'ai' | 'system';
-  content: string;
-  timestamp: Date | Timestamp;
+  id?: string
+  role: 'human' | 'ai' | 'system'
+  content: string
+  timestamp: Date | Timestamp
 }
 
 // Get Firestore instance and utils
-const { firestore, formatTimestamp } = useFirebase();
+const { firestore, formatTimestamp } = useFirebase()
 
 // Get AI model configuration
 const {
@@ -29,20 +53,20 @@ const {
   initializeModel,
   updateConfig,
   availableModels,
-} = useAIModel();
+} = useAIModel()
 
 // Component state
-const messages = ref<Message[]>([]);
-const newMessage = ref('');
-const isLoading = ref(false);
+const messages = ref<Message[]>([])
+const newMessage = ref('')
+const isLoading = ref(false)
 const apiKeys = ref({
   openai: '',
   anthropic: ''
-});
-const showApiKeyDialog = ref(false);
-const error = ref<string | null>(null);
-const currentStreamingContent = ref('');
-const currentStreamingMessageId = ref<string | null>(null); // Track current streaming message
+})
+const showApiKeyDialog = ref(false)
+const error = ref<string | null>(null)
+const currentStreamingContent = ref('')
+const currentStreamingMessageId = ref<string | null>(null) // Track current streaming message
 
 // Dynamic system message based on model
 const systemMessage = computed(() => {
@@ -56,8 +80,6 @@ const systemMessage = computed(() => {
   }
   return 'Welcome to the chat!';
 });
-
-const messagesContainer = ref<HTMLElement | null>(null);
 
 const validateApiKey = (key: string): boolean => {
   if (!key) return false;
@@ -204,19 +226,11 @@ const handleApiKeySubmit = async (key: string) => {
   await initializeChat(key);
 };
 
-const autoResize = (e: Event) => {
-  const textarea = e.target as HTMLTextAreaElement;
-  textarea.style.height = 'auto';
-  textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`; // 160px is 10rem
-};
-
 const scrollToBottom = () => {
-  if (messagesContainer.value) {
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth'
-    });
-  }
+  window.scrollTo({
+    top: document.documentElement.scrollHeight,
+    behavior: 'smooth'
+  });
 };
 
 const sendMessage = async () => {
@@ -326,101 +340,13 @@ watch(() => messages.value[messages.value.length - 1]?.content, () => {
 });
 </script>
 
-<template>
-  <main class="relative min-h-screen">
-    <!-- Error Message -->
-    <Message v-if="error" severity="error" :closable="false" class="m-4">{{ error }}</Message>
-
-    <!-- Chat Messages -->
-    <div ref="messagesContainer" class="px-4 py-2 space-y-4 bg-white dark:bg-gray-800 pb-[80px]">
-      <div v-for="message in messages" :key="message.id" :class="[
-        'max-w-3xl mx-auto p-4 rounded-lg max-w-[80%]',
-        message.role === 'human' ? 'ml-auto bg-blue-500 text-white' : 'bg-gray-100 dark:bg-gray-700 dark:text-white'
-      ]">
-        <div class="prose max-w-none dark:prose-invert">
-          <p class="whitespace-pre-wrap">{{ message.content }}</p>
-        </div>
-      </div>
-      <div v-if="isLoading" class="max-w-3xl mx-auto p-4 rounded-lg bg-gray-100 dark:bg-gray-700 mr-auto max-w-[80%]">
-        <div class="animate-pulse flex space-x-4">
-          <div class="flex-1 space-y-4 py-1">
-            <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
-            <div class="space-y-2">
-              <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>
-              <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded w-5/6"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Input Area -->
-    <div class="absolute bottom-0 left-0 right-0 border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800 shadow-lg">
-      <div class="max-w-3xl mx-auto">
-        <div class="flex gap-4">
-          <InputText
-            v-model="newMessage"
-            @keyup.enter="sendMessage"
-            placeholder="Type your message..."
-            class="flex-1"
-          />
-          <Button
-            icon="pi pi-send"
-            @click="sendMessage"
-            :disabled="!newMessage.trim() || isLoading"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- Config Button -->
-    <Button
-      icon="pi pi-cog"
-      class="fixed top-25 left-10 p-button-rounded p-button-text"
-      @click="showSidebar = true"
-    />
-
-    <!-- Sidebar and Dialogs -->
-    <ModelConfigSidebar
-      v-model="showSidebar"
-      :config="modelConfig"
-      :availableModels="availableModels"
-      @update:config="updateConfig($event)"
-    />
-
-    <!-- API Key Dialog -->
-    <ApiKeyDialog
-      v-model="showApiKeyDialog"
-      :apiKey="apiKeys[modelConfig?.provider || 'openai']"
-      :error="error"
-      :provider="modelConfig?.provider || 'openai'"
-      :loading="isLoading"
-      @submit="handleApiKeySubmit"
-      @update:apiKey="apiKeys[modelConfig?.provider || 'openai'] = $event"
-    />
-  </main>
-</template>
-
 <style scoped>
-:deep(.p-inputtext) {
-  width: 100%;
-  background: var(--surface-ground);
-  color: var(--text-color);
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-:deep(.p-inputtext::placeholder) {
-  color: var(--text-color-secondary);
-  opacity: 0.7;
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.overflow-y-auto::-webkit-scrollbar {
+.scrollbar-hide::-webkit-scrollbar {
   display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-.overflow-y-auto {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
 }
 </style>
