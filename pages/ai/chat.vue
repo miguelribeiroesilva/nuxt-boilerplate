@@ -174,6 +174,7 @@ const sendMessage = async () => {
       v-model="showApiKeyDialog"
       v-model:apiKey="apiKey"
       :error="error"
+      provider="openai"
       @submit="initializeChat"
     />
 

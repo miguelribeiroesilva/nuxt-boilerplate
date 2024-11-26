@@ -60,7 +60,6 @@ const systemMessage = computed(() => {
 const messagesContainer = ref<HTMLElement | null>(null);
 
 const validateApiKey = (key: string): boolean => {
-  console.log(key);
   if (!key) return false;
   key = key.trim();
 

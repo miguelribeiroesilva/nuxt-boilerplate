@@ -25,22 +25,22 @@ export interface ModelOption {
 
 // Default models with their specifications
 export const defaultModels: ModelOption[] = [
-  { 
-    label: 'GPT-4 Turbo', 
+  {
+    label: 'GPT-4 Turbo',
     value: 'gpt-4-1106-preview',
     provider: 'openai',
     maxTokens: 4096,
     description: 'Most capable GPT-4 model, better at tasks like writing, analysis, and coding'
   },
-  { 
-    label: 'GPT-4', 
+  {
+    label: 'GPT-4',
     value: 'gpt-4',
     provider: 'openai',
     maxTokens: 8192,
     description: 'More capable than any GPT-3.5 model, better at complex tasks'
   },
-  { 
-    label: 'GPT-3.5 Turbo', 
+  {
+    label: 'GPT-3.5 Turbo',
     value: 'gpt-3.5-turbo',
     provider: 'openai',
     maxTokens: 4096,
@@ -82,8 +82,8 @@ export const defaultConfig: ModelConfig = {
 };
 
 // System message to provide context to the AI
-const systemMessage = `You are a helpful AI assistant that provides accurate, informative responses. 
-You have access to up-to-date information and can help with a wide range of tasks. 
+const systemMessage = `You are a helpful AI assistant that provides accurate, informative responses.
+You have access to up-to-date information and can help with a wide range of tasks.
 When asked about data or statistics, you should provide the most recent information available to you.
 If you're not sure about something, you should acknowledge that and suggest reliable sources for verification.`;
 
@@ -158,14 +158,11 @@ export const useAIModel = () => {
 
       // Test the connection
       const response = await model.value.invoke([
-        new SystemMessage(selectedModel.provider === 'openai' 
+        new SystemMessage(selectedModel.provider === 'openai'
           ? "You are an AI assistant created by OpenAI."
           : "You are Claude, an AI assistant created by Anthropic."),
         new HumanMessage("Hello")
       ]);
-
-      console.log('Model test response:', response);
-
     } catch (e) {
       console.error('Error initializing model:', e);
       throw e;
@@ -180,7 +177,7 @@ export const useAIModel = () => {
         newConfig.provider = selectedModel.provider;
       }
     }
-    
+
     config.value = {
       ...config.value,
       ...newConfig,
