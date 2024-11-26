@@ -1,7 +1,7 @@
 {
   "locale": {
     "dir": "ltr",
-    "en": "English",
+    "en-US": "English",
     "fr-FR": "French",
     "ar-AR": "العربية"
   },
@@ -15,7 +15,7 @@
   },
   "cookies": {
     "bar": {
-      "title": "🍪 Hi. This site uses cookies",
+      "title": " Hi. This site uses cookies",
       "description": "We use cookies and similar technologies to help personalize content and offer a better experience. You can opt to customize them by clicking the customize button."
     },
     "modal": {

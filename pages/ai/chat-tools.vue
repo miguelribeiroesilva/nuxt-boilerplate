@@ -50,42 +50,17 @@ const userInput = ref('');
 const isLoading = ref(false);
 const apiKey = ref('');
 const showApiKeyDialog = ref(false);
-const error = ref<string | null>(null);
+const { error, validateApiKey } = useApiKeyValidation();
+const initialized = ref(false);
 
 // Get Firestore instance and utils
 const { firestore, formatTimestamp } = useFirebase();
 
-const validateApiKey = (key: string): boolean => {
-  if (!key) return false;
-  key = key.trim();
-
-  if (modelConfig.value.provider === 'openai') {
-    return key.startsWith('sk-');
-  } else if (modelConfig.value.provider === 'anthropic') {
-    return /^sk-ant-api\d{2}-/.test(key);
-  }
-  return false;
-};
-
-const initializeChat = async (key: string) => {
-  if (!validateApiKey(key)) {
-    error.value = 'Invalid API key format. Key should start with "sk-"';
-    return;
-  }
-
-  try {
-    await initializeModel(key);
-    if (window?.localStorage) {
-      window.localStorage.setItem(`${modelConfig.value.provider}_api_key`, key);
-    }
+const initializeChat = async () => {
+  if (await validateApiKey(apiKey.value)) {
+    initialized.value = true;
     showApiKeyDialog.value = false;
     error.value = null;
-  } catch (e) {
-    console.error('Error initializing chat:', e);
-    error.value = 'Failed to initialize chat with API key.';
-    if (window?.localStorage) {
-      window.localStorage.removeItem(`${modelConfig.value.provider}_api_key`);
-    }
   }
 };
 
@@ -136,7 +111,8 @@ onMounted(async () => {
     const provider = modelConfig.value.provider;
     const savedKey = window?.localStorage?.getItem(`${provider}_api_key`);
     if (savedKey) {
-      await initializeChat(savedKey);
+      apiKey.value = savedKey;
+      await initializeChat();
     } else {
       showApiKeyDialog.value = true;
     }
@@ -175,7 +151,8 @@ watch(() => modelConfig.value, async (newConfig, oldConfig) => {
   const storedKey = window?.localStorage?.getItem(`${provider}_api_key`);
   if (storedKey) {
     try {
-      await initializeChat(storedKey);
+      apiKey.value = storedKey;
+      await initializeChat();
     } catch (e) {
       console.error('Error updating model config:', e);
       error.value = 'Failed to initialize model with stored API key.';
@@ -189,21 +166,10 @@ watch(() => modelConfig.value, async (newConfig, oldConfig) => {
 const handleApiKeySubmit = async (key: string) => {
   try {
     apiKey.value = key;
-    await initializeChat(key);
+    await initializeChat();
   } catch (e) {
     console.error('Error submitting API key:', e);
     error.value = 'Failed to initialize with the provided API key.';
   }
 };
 </script>
-
-<style scoped>
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-</style>

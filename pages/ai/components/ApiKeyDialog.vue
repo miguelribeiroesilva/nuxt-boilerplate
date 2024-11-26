@@ -3,8 +3,8 @@
     :visible="modelValue"
     @update:visible="$emit('update:modelValue', $event)"
     modal
-    :closable="false"
-    :closeOnEscape="false"
+    :closable="true"
+    :closeOnEscape="true"
     :header="provider === 'openai' ? 'OpenAI API Key Required' : 'Anthropic API Key Required'"
     class="api-key-dialog"
   >
@@ -37,58 +37,61 @@
       </div>
     </div>
     <template #footer>
-      <Button
-        label="Submit"
-        @click="handleSubmit"
-        :loading="loading"
-        :disabled="!localApiKey"
-        class="p-button-primary"
-      />
+      <div class="flex justify-between w-full">
+        <Button
+          label="Close"
+          @click="$emit('update:modelValue', false)"
+          class="p-button-secondary"
+          :disabled="props.loading"
+        />
+        <Button
+          label="Submit"
+          @click="handleSubmit"
+          :loading="props.loading"
+          :disabled="!localApiKey"
+          class="p-button-primary"
+        />
+      </div>
     </template>
   </Dialog>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
+import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
 
 interface Props {
-  modelValue: boolean;
-  apiKey: string;
-  error: string | null;
-  provider: 'openai' | 'anthropic';
+  modelValue: boolean
+  error?: string | null
+  provider?: 'openai' | 'anthropic'
+  loading?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  modelValue: false,
-  apiKey: '',
-  error: null,
-  provider: 'openai',
-});
-
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void;
-  (e: 'update:apiKey', value: string): void;
-  (e: 'submit', value: string): void;
-}>();
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'submit', value: string): void
+}>()
 
-const loading = ref(false);
-const localApiKey = ref(props.apiKey);
+const props = defineProps<Props>()
 
-watch(() => props.apiKey, (newValue) => {
-  localApiKey.value = newValue;
+const { validateApiKey, getStoredApiKey } = useApiKeyValidation();
+const localApiKey = ref('');
+
+// Check for stored API key on mount
+onMounted(() => {
+  const storedKey = getStoredApiKey();
+  if (storedKey) {
+    localApiKey.value = storedKey;
+  }
 });
 
 const handleSubmit = async () => {
-  if (!localApiKey.value) return;
-  
-  loading.value = true;
-  try {
-    emit('update:apiKey', localApiKey.value);
+  if (await validateApiKey(localApiKey.value)) {
     emit('submit', localApiKey.value);
-  } finally {
-    loading.value = false;
+    emit('update:modelValue', false);
   }
 };
 </script>

@@ -54,9 +54,10 @@ const messages = ref<Message[]>([]);
 const newMessage = ref('');
 const isLoading = ref(false);
 const apiKey = ref('');
+const { error, validateApiKey } = useApiKeyValidation();
+const initialized = ref(false);
 const showApiKeyDialog = ref(false);
 const chat = ref<ChatOpenAI | null>(null);
-const error = ref<string | null>(null);
 const showSidebar = ref(false);
 const model = ref('');
 const modelConfig = ref({});
@@ -65,38 +66,32 @@ const availableModels = ref([]);
 // Get Firestore instance and utils
 const { firestore, formatTimestamp } = useFirebase();
 
-const validateApiKey = (key: string): boolean => {
-  // Check if key starts with 'sk-' and has sufficient length
-  return key.startsWith('sk-') && key.length > 20;
-};
+const initializeChat = async () => {
+  if (await validateApiKey(apiKey.value)) {
+    initialized.value = true;
 
-const initializeChat = async (key: string) => {
-  if (!validateApiKey(key)) {
-    error.value = 'Invalid API key format. Key should start with "sk-"';
-    return;
-  }
+    try {
+      // Initialize the chat model
+      chat.value = new ChatOpenAI({
+        openAIApiKey: apiKey.value.trim(),
+        temperature: 0.7,
+      });
 
-  try {
-    // Initialize the chat model
-    chat.value = new ChatOpenAI({
-      openAIApiKey: key.trim(),
-      temperature: 0.7,
-    });
+      // Test the API key with a simple request
+      await chat.value.invoke([new HumanMessage('test')]);
 
-    // Test the API key with a simple request
-    await chat.value.invoke([new HumanMessage('test')]);
-
-    if (window?.localStorage) {
-      window.localStorage.setItem('openai_api_key', key);
-    }
-    showApiKeyDialog.value = false;
-    error.value = null;
-  } catch (e) {
-    console.error('Error initializing chat:', e);
-    error.value = 'Failed to initialize chat with API key.';
-    chat.value = null;
-    if (window?.localStorage) {
-      window.localStorage.removeItem('openai_api_key');
+      if (window?.localStorage) {
+        window.localStorage.setItem('openai_api_key', apiKey.value);
+      }
+      showApiKeyDialog.value = false;
+      error.value = null;
+    } catch (e) {
+      console.error('Error initializing chat:', e);
+      error.value = 'Failed to initialize chat with API key.';
+      chat.value = null;
+      if (window?.localStorage) {
+        window.localStorage.removeItem('openai_api_key');
+      }
     }
   }
 };
@@ -148,7 +143,8 @@ onMounted(async () => {
   try {
     const savedKey = window?.localStorage?.getItem('openai_api_key');
     if (savedKey) {
-      await initializeChat(savedKey);
+      apiKey.value = savedKey;
+      await initializeChat();
     } else {
       showApiKeyDialog.value = true;
     }
@@ -181,7 +177,7 @@ onMounted(async () => {
 const handleApiKeySubmit = async (key: string) => {
   try {
     apiKey.value = key;
-    await initializeChat(key);
+    await initializeChat();
   } catch (e) {
     console.error('Error submitting API key:', e);
     error.value = 'Failed to initialize with the provided API key.';
@@ -192,14 +188,3 @@ const updateConfig = (config: any) => {
   modelConfig.value = config;
 };
 </script>
-
-<style scoped>
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-</style>

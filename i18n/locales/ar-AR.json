@@ -1,8 +1,8 @@
 {
   "locale": {
     "dir": "rtl",
-    "en": "English",
-    "fr-FR": "Français",
+    "en-US": "الإنجليزية",
+    "fr-FR": "الفرنسية",
     "ar-AR": "العربية"
   },
   "site": {

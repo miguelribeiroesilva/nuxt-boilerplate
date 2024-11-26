@@ -79,55 +79,25 @@ export default defineNuxtConfig({
 
   imports: {
     dirs: [
-      'composables/**',
-      'components',
-      'pages/ai/components'
+      // scan all modules within `./composables`
+      'composables',
+      // scan all modules within `./utils`
+      'utils'
     ],
-    imports: [
-      {
-        from: 'vue',
-        imports: [
-          'ref',
-          'computed',
-          'onMounted',
-          'watch',
-          'reactive',
-          'nextTick',
-          'defineProps',
-          'defineEmits'
-        ],
-      },
-      {
-        from: 'primevue/useconfirm',
-        name: 'useConfirm',
-        as: 'useConfirm'
-      },
-      {
-        from: 'primevue/usetoast',
-        name: 'useToast',
-        as: 'useToast'
-      },
-      {
-        from: 'primevue/usedialog',
-        name: 'useDialog',
-        as: 'useDialog'
-      }
-    ],
+    global: true,
+    autoImport: true
   },
 
   components: [
     {
       path: '~/components',
-      pathPrefix: false,
     },
     {
       path: '~/components/global',
-      pathPrefix: false,
       global: true
     },
     {
       path: '~/pages/ai/components',
-      pathPrefix: false,
       global: true
     }
   ],
@@ -165,18 +135,19 @@ export default defineNuxtConfig({
     '@nuxt/content',
     '@nuxtjs/device',
     '@nuxtjs/google-fonts',
+    'nuxt-primevue'
   ],
 
   primevue: {
-    components: {
-      include: ['Button', 'Dialog', 'Toast', 'Dropdown', 'InputText', 'Calendar', 'DataTable', 'Column', 'ConfirmDialog']
-    },
-    directives: ['tooltip', 'ripple'],
-    composables: ['useConfirm', 'useToast', 'useDialog']
+    directives: {
+      tooltip: true,
+      ripple: true
+    }
   },
 
   i18n: {
     vueI18n: "./i18n.config.ts",
+    baseUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
     detectBrowserLanguage: {
       useCookie: false,
       alwaysRedirect: true,
@@ -187,19 +158,27 @@ export default defineNuxtConfig({
       {
         code: "en",
         name: "English",
-        iso: "en-US"
+        iso: "en-US",
+        language: "English",
+        dir: "ltr"
       },
       {
         code: "fr",
         name: "Français",
-        iso: "fr-FR"
+        iso: "fr-FR",
+        language: "French",
+        dir: "ltr"
       },
       {
         code: "ar",
         name: "العربية",
-        iso: "ar-AR"
+        iso: "ar-AR",
+        language: "Arabic",
+        dir: "rtl"
       }
-    ]
+    ] as Locale[],
+    defaultLocale: "en",
+    strategy: "prefix_except_default"
   },
 
   cookieControl: {

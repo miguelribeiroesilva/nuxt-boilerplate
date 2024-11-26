@@ -5,11 +5,46 @@
     </div>
 
     <div class="flex-1 mt-4 overflow-hidden">
-      <MessagesArea
-        :messages="messages"
-        :is-loading="isLoading"
-        :hide-scrollbar="true"
-      />
+      <div v-if="messages.length === 0 && !isLoading" class="flex flex-col items-center justify-center h-full">
+        <div class="max-w-2xl text-center text-gray-600 dark:text-gray-400">
+          <blockquote class="italic">
+            "{{ currentQuote.text }}"
+          </blockquote>
+          <p class="mt-2 font-semibold">- {{ currentQuote.author }}</p>
+        </div>
+      </div>
+
+      <div v-else class="space-y-4">
+        <MessagesArea
+          :messages="messages"
+          :is-loading="isLoading"
+          :hide-scrollbar="true"
+        />
+      </div>
+
+      <!-- Loading indicator -->
+      <div v-if="isLoading" class="flex items-start space-x-4">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+            AI
+          </div>
+        </div>
+        <div class="flex-1">
+          <div class="animate-pulse">
+            <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+              <div class="space-y-2 mt-2">
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2 text-sm text-gray-500 italic">
+            "{{ currentQuote.text }}"
+            <span class="block mt-1 text-xs">- {{ currentQuote.author }}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="flex-none p-1 border-t dark:border-gray-700">
@@ -34,6 +69,10 @@
 import { collection, query, orderBy, onSnapshot, updateDoc, Timestamp, serverTimestamp, addDoc } from 'firebase/firestore'
 import ApiKeyDialog from './components/ApiKeyDialog.vue'
 import ModelConfigSidebar from './components/ModelConfigSidebar.vue'
+import MessagesArea from './components/MessagesArea.vue'
+import ChatInput from './components/ChatInput.vue'
+import { useApiKeyValidation } from './composables/useApiKeyValidation'
+import { useAiQuotes } from '~/composables/useAiQuotes'
 
 interface Message {
   id?: string
@@ -59,12 +98,14 @@ const {
 const messages = ref<Message[]>([])
 const newMessage = ref('')
 const isLoading = ref(false)
+const apiKey = ref('');
+const { error, validateApiKey } = useApiKeyValidation();
+const initialized = ref(false)
 const apiKeys = ref({
   openai: '',
   anthropic: ''
 })
 const showApiKeyDialog = ref(false)
-const error = ref<string | null>(null)
 const currentStreamingContent = ref('')
 const currentStreamingMessageId = ref<string | null>(null) // Track current streaming message
 
@@ -81,18 +122,14 @@ const systemMessage = computed(() => {
   return 'Welcome to the chat!';
 });
 
-const validateApiKey = (key: string): boolean => {
-  if (!key) return false;
-  key = key.trim();
+const { currentQuote, getRandomQuote } = useAiQuotes()
 
-  if (modelConfig.value.provider === 'openai') {
-    return key.startsWith('sk-');
-  } else if (modelConfig.value.provider === 'anthropic') {
-    // Matches sk-ant-api followed by version number (e.g., 01, 02, 03) and a hyphen
-    return /^sk-ant-api\d{2}-/.test(key);
+// Update the loading state to show new quotes
+watch(isLoading, (newValue) => {
+  if (newValue) {
+    getRandomQuote();
   }
-  return false;
-};
+});
 
 const loadStoredApiKey = () => {
   const provider = modelConfig.value.provider;
@@ -104,30 +141,21 @@ const loadStoredApiKey = () => {
   return null;
 };
 
-const initializeChat = async (key: string) => {
-  const provider = modelConfig.value.provider;
-
-  if (!validateApiKey(key)) {
-    const prefix = provider === 'openai' ? 'sk-' : 'sk-ant-api[VERSION]-';
-    error.value = provider === 'openai'
-      ? `Invalid API key format. Key should start with "${prefix}"`
-      : 'Invalid Anthropic API key format. Key should start with "sk-ant-api" followed by version number (e.g., "sk-ant-api01-")';
-    showApiKeyDialog.value = true;
-    window.localStorage.removeItem(`${provider}_api_key`);
-    return;
-  }
-
-  try {
-    await initializeModel(key);
-    window?.localStorage?.setItem(`${provider}_api_key`, key);
-    apiKeys.value[provider] = key;
+const initializeChat = async () => {
+  if (await validateApiKey(apiKey.value)) {
+    initialized.value = true;
     showApiKeyDialog.value = false;
     error.value = null;
-  } catch (e) {
-    console.error('Error initializing model:', e);
-    error.value = 'Failed to initialize model. Please check your API key.';
-    showApiKeyDialog.value = true;
-    window.localStorage.removeItem(`${provider}_api_key`);
+    try {
+      await initializeModel(apiKey.value);
+      window?.localStorage?.setItem(`${modelConfig.value.provider}_api_key`, apiKey.value);
+      apiKeys.value[modelConfig.value.provider] = apiKey.value;
+    } catch (e) {
+      console.error('Error initializing model:', e);
+      error.value = 'Failed to initialize model. Please check your API key.';
+      showApiKeyDialog.value = true;
+      window.localStorage.removeItem(`${modelConfig.value.provider}_api_key`);
+    }
   }
 };
 
@@ -200,7 +228,7 @@ onMounted(async () => {
   try {
     const storedKey = loadStoredApiKey();
     if (storedKey) {
-      await initializeChat(storedKey);
+      await initializeChat();
     } else {
       showApiKeyDialog.value = true;
     }
@@ -218,12 +246,8 @@ onUnmounted(() => {
 });
 
 const handleApiKeySubmit = async (key: string) => {
-  if (!key) {
-    error.value = 'API key is required';
-    return;
-  }
-
-  await initializeChat(key);
+  apiKey.value = key;
+  await initializeChat();
 };
 
 const scrollToBottom = () => {
@@ -339,14 +363,3 @@ watch(() => messages.value[messages.value.length - 1]?.content, () => {
   });
 });
 </script>
-
-<style scoped>
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-</style>

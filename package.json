@@ -49,6 +49,7 @@
     "@vitejs/plugin-vue": "^5.2.0",
     "eslint": "^8.57.0",
     "firebase-tools": "^13.5.0",
+    "nuxt-primevue": "^3.0.0",
     "postcss": "^8.4.35",
     "postcss-import": "^16.0.1",
     "typescript": "5.3.3",

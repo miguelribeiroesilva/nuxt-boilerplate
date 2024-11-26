@@ -6,20 +6,17 @@ const { locale } = useI18n()
 const runtimeConfig = useRuntimeConfig()
 
 const availableLocales = computed(() => {
-  console.log('availableLocales', runtimeConfig.public.locales)
   return runtimeConfig.public.locales || []
 })
 
 // Initialize from localStorage if available
 const storedLang = localStorage.getItem('nuxt-lang')
 if (storedLang) {
-  console.log('storedLang', storedLang)
   locale.value = storedLang
 }
 
 // Update localStorage when language changes
 const updateLocale = (newLocale: string) => {
-  console.log('updateLocale', newLocale)
   localStorage.setItem('nuxt-lang', newLocale)
 }
 
