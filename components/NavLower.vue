@@ -67,6 +67,11 @@ const items = [
         icon: 'pi pi-file',
         command: () => navigateTo('/firebase/storage')
       },
+      {
+        label: 'Fake Data',
+        icon: 'pi pi-code',
+        command: () => navigateTo('/firebase/fakedata')
+      }
     ]
   },
   {

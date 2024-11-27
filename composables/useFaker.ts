@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { computed } from 'vue'
+
 
 export const useFaker = () => {
   // User Data
@@ -23,7 +23,7 @@ export const useFaker = () => {
       role: faker.person.jobTitle(),
       department: faker.commerce.department(),
     },
-    username: faker.internet.userName(),
+    username: faker.internet.username(),
     password: faker.internet.password(),
     registeredAt: faker.date.past(),
     lastLoginAt: faker.date.recent(),
@@ -87,9 +87,9 @@ export const useFaker = () => {
       zipCode: faker.location.zipCode(),
     },
     social: {
-      twitter: faker.internet.userName(),
-      facebook: faker.internet.userName(),
-      linkedin: faker.internet.userName(),
+      twitter: faker.internet.username(),
+      facebook: faker.internet.username(),
+      linkedin: faker.internet.username(),
     },
   })
 
