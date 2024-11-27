@@ -105,7 +105,24 @@
     <!-- Import History -->
     <div>
       <h2 class="text-xl font-semibold mb-4">Import History</h2>
+      
+      <!-- Loading State -->
+      <div v-if="loadingHistory" class="text-center py-4">
+        <ProgressSpinner style="width: 50px; height: 50px" />
+        <p class="mt-2 text-gray-600">Loading import history...</p>
+      </div>
+      
+      <!-- Error State -->
+      <div v-else-if="historyError" class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+        <div class="flex items-center">
+          <i class="pi pi-exclamation-triangle text-red-500 mr-2"></i>
+          <span class="text-red-600 dark:text-red-400">{{ historyError }}</span>
+        </div>
+      </div>
+      
+      <!-- Data Table -->
       <DataTable
+        v-else
         :value="importHistory"
         :paginator="true"
         :rows="5"
@@ -138,6 +155,7 @@
 
 <script setup lang="ts">
 import { useToast } from 'primevue/usetoast'
+import { onMounted } from 'vue'
 
 const toast = useToast()
 const faker = useFaker()
@@ -167,6 +185,31 @@ const importProgress = ref({
 
 // Import History
 const importHistory = ref([])
+const loadingHistory = ref(false)
+const historyError = ref('')
+
+// Initialize import history
+onMounted(async () => {
+  loadingHistory.value = true
+  historyError.value = ''
+  
+  try {
+    const historyCollection = await getCollection('importHistory')
+    importHistory.value = historyCollection || []
+  } catch (error: any) {
+    console.error('Error loading import history:', error)
+    historyError.value = 'Unable to load import history. Please check your permissions.'
+    toast.add({
+      severity: 'error',
+      summary: 'Access Denied',
+      detail: 'You do not have permission to view the import history. Please contact your administrator.',
+      life: 5000
+    })
+    importHistory.value = []
+  } finally {
+    loadingHistory.value = false
+  }
+})
 
 // Preview Data
 const previewData = computed(() => {
@@ -178,25 +221,7 @@ const previewData = computed(() => {
     case 'products':
       return faker.generateProduct(importForm.value.includeImages)
     case 'categories':
-      return {
-        id: faker.randomNumber(1, 1000),
-        name: faker.randomArrayElement([
-          'Electronics',
-          'Clothing',
-          'Books',
-          'Home & Garden',
-          'Sports',
-          'Toys',
-          'Automotive',
-          'Health & Beauty'
-        ]),
-        description: faker.generateBlogPost(false).excerpt,
-        image: importForm.value.includeImages ?
-          faker.generateProduct(true).image : undefined,
-        parent: faker.maybe(() => faker.randomNumber(1, 1000), 0.3),
-        order: faker.randomNumber(1, 100),
-        active: faker.randomBoolean()
-      }
+      return faker.generateCategory(importForm.value.includeImages)
     default:
       return null
   }
@@ -210,25 +235,7 @@ const generateData = (type: string) => {
     case 'products':
       return faker.generateProduct(importForm.value.includeImages)
     case 'categories':
-      return {
-        id: faker.randomNumber(1, 1000),
-        name: faker.randomArrayElement([
-          'Electronics',
-          'Clothing',
-          'Books',
-          'Home & Garden',
-          'Sports',
-          'Toys',
-          'Automotive',
-          'Health & Beauty'
-        ]),
-        description: faker.generateBlogPost(false).excerpt,
-        image: importForm.value.includeImages ?
-          faker.generateProduct(true).image : undefined,
-        parent: faker.maybe(() => faker.randomNumber(1, 1000), 0.3),
-        order: faker.randomNumber(1, 100),
-        active: faker.randomBoolean()
-      }
+      return faker.generateCategory(importForm.value.includeImages)
     default:
       return null
   }

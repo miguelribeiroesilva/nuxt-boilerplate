@@ -169,6 +169,7 @@ export default defineNuxtConfig({
         'InputNumber',
         'Menubar',
         'ProgressBar',
+        'ProgressSpinner',
         'Sidebar',
         'Slider',
         'Tag',

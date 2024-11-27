@@ -1,6 +1,12 @@
 import { faker } from '@faker-js/faker'
 
-
+/**
+ * Faker Composable
+ * 
+ * Provides a set of functions to generate fake data for various use cases.
+ * 
+ * @returns {Object} An object containing functions to generate fake data.
+ */
 export const useFaker = () => {
   // User Data
   const generateUser = (withAvatar = true) => ({
@@ -151,6 +157,35 @@ export const useFaker = () => {
     })),
   })
 
+  // Category Data
+  const generateCategory = (withImage = true) => ({
+    id: faker.string.uuid(),
+    name: faker.helpers.arrayElement([
+      'Electronics',
+      'Clothing',
+      'Books',
+      'Home & Garden',
+      'Sports',
+      'Toys',
+      'Automotive',
+      'Health & Beauty',
+      'Food & Beverages',
+      'Office Supplies',
+      'Pet Supplies',
+      'Music & Instruments',
+      'Art & Crafts',
+      'Jewelry',
+      'Tools & Hardware'
+    ]),
+    description: faker.lorem.paragraph(),
+    image: withImage ? faker.image.urlLoremFlickr({ category: 'business' }) : null,
+    parent: faker.helpers.maybe(() => faker.string.uuid(), { probability: 0.3 }) || null,
+    order: faker.number.int({ min: 1, max: 100 }),
+    active: faker.datatype.boolean(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  })
+
   // Generate Multiple Items
   const generateMultiple = <T>(generator: () => T, count: number): T[] => {
     return Array.from({ length: count }, generator)
@@ -174,6 +209,7 @@ export const useFaker = () => {
     generateTransaction,
     generateComment,
     generateNotification,
+    generateCategory,
     generateMultiple,
     ...utilities.value
   }
