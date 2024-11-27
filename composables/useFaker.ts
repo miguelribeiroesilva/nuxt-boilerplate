@@ -2,9 +2,9 @@ import { faker } from '@faker-js/faker'
 
 /**
  * Faker Composable
- * 
+ *
  * Provides a set of functions to generate fake data for various use cases.
- * 
+ *
  * @returns {Object} An object containing functions to generate fake data.
  */
 export const useFaker = () => {
