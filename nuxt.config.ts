@@ -93,7 +93,6 @@ export default defineNuxtConfig({
     {
       path: '~/components',
       extensions: ['.vue'],
-      exclude: ['primevue/**']
     },
     {
       path: '~/components/global',
@@ -165,7 +164,8 @@ export default defineNuxtConfig({
         'Textarea',
         'Toast',
         'Tree',
-        'FileUpload'
+        'FileUpload',
+        'Menu'
       ]
     },
     directives: {

@@ -71,12 +71,13 @@ import ModelConfigSidebar from './components/ModelConfigSidebar.vue'
 import MessagesArea from './components/MessagesArea.vue'
 import ChatInput from './components/ChatInput.vue'
 import { useAiQuotes } from '~/composables/useAiQuotes'
+import { SystemMessage, HumanMessage, AIMessage } from '@langchain/core/messages'
 
 interface Message {
   id?: string
   role: 'human' | 'ai' | 'system'
   content: string
-  timestamp: Date | Timestamp
+  timestamp: Date | null
 }
 
 // Get Firestore instance and utils
@@ -109,7 +110,7 @@ const currentStreamingMessageId = ref<string | null>(null) // Track current stre
 
 // Dynamic system message based on model
 const systemMessage = computed(() => {
-  const selectedModel = availableModels.value.find(m => m.value === modelConfig.value.modelName)
+  const selectedModel = availableModels.value.find((m: { value: any }) => m.value === modelConfig.value.modelName)
   if (selectedModel) {
     if (selectedModel.provider === 'anthropic') {
       return `You are Claude ${selectedModel.label}, an AI assistant created by Anthropic. You are helpful, direct, and aim to provide accurate and nuanced responses.`
@@ -123,7 +124,7 @@ const systemMessage = computed(() => {
 const { currentQuote, getRandomQuote } = useAiQuotes()
 
 // Update the loading state to show new quotes
-watch(isLoading, (newValue) => {
+watch(isLoading, (newValue: any) => {
   if (newValue) {
     getRandomQuote()
   }
@@ -158,7 +159,7 @@ const initializeChat = async () => {
 }
 
 // Watch for model config changes
-watch(() => modelConfig.value, async (newConfig, oldConfig) => {
+watch(() => modelConfig.value, async (newConfig: any, oldConfig: any) => {
   // Skip if configs are the same
   if (JSON.stringify(newConfig) === JSON.stringify(oldConfig)) return
 
@@ -209,13 +210,13 @@ onMounted(async () => {
       } else if (change.type === 'modified') {
         // Only update if it's not the currently streaming message
         if (currentStreamingMessageId.value !== change.doc.id) {
-          const index = messages.value.findIndex(m => m.id === change.doc.id)
+          const index = messages.value.findIndex((m: { id: string }) => m.id === change.doc.id)
           if (index !== -1) {
             messages.value[index] = message
           }
         }
       } else if (change.type === 'removed') {
-        const index = messages.value.findIndex(m => m.id === change.doc.id)
+        const index = messages.value.findIndex((m: { id: string }) => m.id === change.doc.id)
         if (index !== -1) {
           messages.value.splice(index, 1)
         }
@@ -296,8 +297,8 @@ const sendMessage = async () => {
     const chatHistory = [
       new SystemMessage(systemMessage.value),
       ...messages.value
-        .filter(msg => msg.id !== aiMessageRef.id && msg.role !== 'system')
-        .map(msg => msg.role === 'human' ? new HumanMessage(msg.content) : new AIMessage(msg.content))
+        .filter((msg: { id: string; role: string }) => msg.id !== aiMessageRef.id && msg.role !== 'system')
+        .map((msg: { role: string; content: any }) => msg.role === 'human' ? new HumanMessage(msg.content) : new AIMessage(msg.content))
     ]
 
     // Add current message
@@ -314,7 +315,7 @@ const sendMessage = async () => {
             accumulatedContent += chunk.content
 
             // Update local state directly
-            const index = messages.value.findIndex(m => m.id === aiMessageRef.id)
+            const index = messages.value.findIndex((m: { id: string }) => m.id === aiMessageRef.id)
             if (index !== -1) {
               messages.value[index].content = accumulatedContent
             }
@@ -325,9 +326,9 @@ const sendMessage = async () => {
             })
           }
         }
-      } catch (streamError) {
+      } catch (streamError: Error | any) {
         console.error('Streaming error:', streamError)
-        error.value = `Error during streaming: ${streamError.message}`
+        error.value = `Error during streaming: ${streamError instanceof Error ? streamError.message : String(streamError)}`
         throw streamError
       } finally {
         // Clear current streaming message ID
@@ -338,10 +339,13 @@ const sendMessage = async () => {
     console.error('Error:', e)
     error.value = 'Failed to send message. Please try again.'
 
-    if (e.toString().includes('API key')) {
-      error.value = 'Invalid API key. Please check your OpenAI API key.'
-      showApiKeyDialog.value = true
-      model.value = null
+    // Type guard to check if e is an Error object
+    if (e instanceof Error) {
+      if (e.message.includes('API key')) {
+        error.value = 'Invalid API key. Please check your OpenAI API key.'
+        showApiKeyDialog.value = true
+        model.value = null
+      }
     }
   } finally {
     isLoading.value = false
