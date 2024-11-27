@@ -67,11 +67,9 @@
 
 <script setup lang="ts">
 import { collection, query, orderBy, onSnapshot, updateDoc, Timestamp, serverTimestamp, addDoc } from 'firebase/firestore'
-import ApiKeyDialog from './components/ApiKeyDialog.vue'
 import ModelConfigSidebar from './components/ModelConfigSidebar.vue'
 import MessagesArea from './components/MessagesArea.vue'
 import ChatInput from './components/ChatInput.vue'
-import { useApiKeyValidation } from './composables/useApiKeyValidation'
 import { useAiQuotes } from '~/composables/useAiQuotes'
 
 interface Message {
