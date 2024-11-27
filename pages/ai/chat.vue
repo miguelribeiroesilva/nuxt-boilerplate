@@ -187,4 +187,8 @@ const handleApiKeySubmit = async (key: string) => {
 const updateConfig = (config: any) => {
   modelConfig.value = config;
 };
+
+definePageMeta({
+  layout: "fullscreen",
+});
 </script>

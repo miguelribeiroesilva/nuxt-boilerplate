@@ -172,4 +172,8 @@ const handleApiKeySubmit = async (key: string) => {
     error.value = 'Failed to initialize with the provided API key.';
   }
 };
+
+definePageMeta({
+  layout: "fullscreen",
+});
 </script>
