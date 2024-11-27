@@ -148,6 +148,13 @@ export default defineNuxtConfig({
       ripple: true,
       inputStyle: 'filled'
     },
+    services: {
+      tooltip: true,
+      ripple: true,
+      confirmation: true,
+      dialog: true,
+      toast: true
+    },
     components: {
       include: [
         'Button',
