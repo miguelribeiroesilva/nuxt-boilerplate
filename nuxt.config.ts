@@ -71,6 +71,7 @@ export default defineNuxtConfig({
 
   css: [
     'primevue/resources/themes/lara-light-green/theme.css',
+    'primevue/resources/themes/lara-dark-green/theme.css',
     'primevue/resources/primevue.css',
     'primeicons/primeicons.css',
     './assets/css/tailwind.css',
@@ -163,7 +164,8 @@ export default defineNuxtConfig({
         'Slider',
         'Textarea',
         'Toast',
-        'Tree'
+        'Tree',
+        'FileUpload'
       ]
     },
     directives: {

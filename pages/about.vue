@@ -8,6 +8,9 @@ useSeoMeta({
   title: t("pages.about.meta.title"),
   description: t("pages.about.meta.description"),
 });
+definePageMeta({
+  layout: "fullscreen",
+});
 </script>
 <template>
   <BlogLayout>

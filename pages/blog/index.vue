@@ -2,7 +2,7 @@
   <BlogLayout>
     <template #title>Blog Posts</template>
     <template #meta>Latest articles and updates</template>
-    
+
     <div class="grid gap-8">
       <article v-for="article in articles" :key="article._path" class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow">
         <NuxtLink :to="article._path" class="no-underline">
@@ -20,4 +20,7 @@
 
 <script setup>
 const { data: articles } = await useAsyncData('articles', () => queryContent('blog').find())
+definePageMeta({
+  layout: "fullscreen",
+});
 </script>

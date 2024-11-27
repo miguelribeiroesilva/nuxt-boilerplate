@@ -23,16 +23,6 @@ const items = [
     icon: 'pi pi-home'
   },
   {
-    label: 'About',
-    command: () => navigateTo('/about'),
-    icon: 'pi pi-info-circle'
-  },
-  {
-    label: 'Blog',
-    command: () => navigateTo('/blog'),
-    icon: 'pi pi-book'
-  },
-  {
     label: 'AI',
     icon: 'pi pi-brain',
     items: [
@@ -54,38 +44,54 @@ const items = [
     ]
   },
   {
-    label: 'Features',
-    icon: 'pi pi-star',
+    label: 'Firebase',
+    icon: 'pi pi-database',
     items: [
-      {
-        label: 'Minimal',
-        command: () => navigateTo('/minimal'),
-        icon: 'pi pi-minus'
+    {
+        label: 'Firebase Setup',
+        icon: 'pi pi-cog',
+        command: () => navigateTo('/firebase/setup')
       },
       {
-        label: '404',
-        command: () => navigateTo('/404'),
-        icon: 'pi pi-exclamation-triangle'
-      }
+        label: 'Firebase Auth',
+        icon: 'pi pi-user',
+        command: () => navigateTo('/firebase/auth')
+      },
+      {
+        label: 'Firestore',
+        icon: 'pi pi-database',
+        command: () => navigateTo('/firebase/firestore')
+      },
+      {
+        label: 'Firebase Storage',
+        icon: 'pi pi-file',
+        command: () => navigateTo('/firebase/storage')
+      },
     ]
+  },
+  {
+        label: 'PrimeVue',
+        icon: 'pi pi-prime',
+        items: [
+          {
+            label: 'Tailwind',
+            icon: 'pi pi-prime',
+            command: () => navigateTo('/_tailwind/'),
+          },
+          {
+            label: 'Upload',
+            icon: 'pi pi-prime',
+            command: () => navigateTo('/primevue/upload'),
+          },
+        ]
   },
   {
     label: 'Resources',
     icon: 'pi pi-list',
     items: [
+
       {
-        label: 'PrimeVue',
-        icon: 'pi pi-prime',
-        items: [
-          {
-            label: 'Tree',
-            icon: 'pi pi-sitemap',
-            command: () => navigateTo('/primevue/tree')
-          }
-        ]
-      },
-      {
-        label: 'Documentation',
+        label: 'Nuxt',
         icon: 'pi pi-file',
         url: 'https://nuxt.com/docs',
         target: '_blank'
@@ -97,24 +103,36 @@ const items = [
         target: '_blank'
       }
     ]
-  }
+  },
+
+  {
+    label: 'Blog',
+    command: () => navigateTo('/blog'),
+    icon: 'pi pi-book'
+  },
+  {
+    label: 'About',
+    command: () => navigateTo('/about'),
+    icon: 'pi pi-info-circle'
+  },
+
 ];
 </script>
 
 <style scoped>
 :deep(.p-menubar) {
-  background: transparent;
   border: none;
-  padding: 0.5rem 0;
+  border-radius: 0;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--surface-border);
 }
 
 :deep(.p-menubar-root-list) {
-  gap: 0.5rem;
+  background: var(--surface-card);
 }
 
 :deep(.p-menuitem-link) {
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
+  color: var(--text-color);
 }
 
 :deep(.p-menuitem-text) {
@@ -122,49 +140,22 @@ const items = [
 }
 
 :deep(.p-menuitem-icon) {
-  color: var(--text-color);
+  color: var(--text-color-secondary);
 }
 
 :deep(.p-submenu-list) {
   background: var(--surface-overlay);
-  border-radius: 0.5rem;
-  padding: 0.5rem;
+  border: 1px solid var(--surface-border);
 }
 
-/* Dark mode adjustments */
-.dark :deep(.p-menuitem-link:not(.p-disabled):hover) {
-  background: rgba(255, 255, 255, 0.1);
+:deep(.p-menuitem-link:hover) {
+  background: var(--surface-hover);
 }
 
-.dark :deep(.p-menuitem-link) {
-  color: white;
+:deep(.p-menuitem-link:focus) {
+  box-shadow: inset 0 0 0 0.15rem var(--primary-color);
 }
 
-.dark :deep(.p-submenu-list) {
-  background: var(--surface-overlay);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Active link styles */
-:deep(.router-link-active) {
-  background: var(--primary-color);
-}
-
-:deep(.router-link-active .p-menuitem-text),
-:deep(.router-link-active .p-menuitem-icon) {
-  color: white;
-}
-
-/* Hover effect for menu items */
-:deep(.p-menuitem-link:not(.p-disabled):hover) {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-/* Ensure text is visible in all states */
-:deep(.p-menuitem-text),
-:deep(.p-menuitem-icon) {
-  color: inherit;
-}
 :deep(.p-menuitem-link) {
     padding-top: 0.25rem !important;
     padding-right: 0.5rem !important;
