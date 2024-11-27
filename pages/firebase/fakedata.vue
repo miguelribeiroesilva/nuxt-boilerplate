@@ -1,12 +1,12 @@
 <template>
   <div class="card">
-    <h1 class="text-3xl font-bold mb-6">Data Import</h1>
+    <h1 class="text-xl font-bold mb-6">Data Import</h1>
 
     <!-- Import Form -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <!-- Collection Selection -->
       <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-        <h2 class="text-xl font-semibold mb-4">Import Settings</h2>
+        <h3 class="font-semibold mb-4">Import Settings</h3>
         <form @submit.prevent="handleImport" class="space-y-4">
           <div class="space-y-4">
             <!-- Collection Type -->
@@ -78,7 +78,7 @@
 
       <!-- Preview -->
       <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-        <h2 class="text-xl font-semibold mb-4">Preview</h2>
+        <h3 class="font-semibold mb-4">Preview</h3>
         <div v-if="previewData" class="space-y-4">
           <div class="overflow-y-auto max-h-96">
             <pre class="text-sm">{{ JSON.stringify(previewData, null, 2) }}</pre>
@@ -92,7 +92,7 @@
 
     <!-- Import Progress -->
     <div v-if="importProgress.total > 0" class="mb-6">
-      <h3 class="text-lg font-semibold mb-2">Import Progress</h3>
+      <h3 class="font-semibold mb-2">Import Progress</h3>
       <ProgressBar
         :value="(importProgress.current / importProgress.total) * 100"
         :showValue="true"
@@ -104,14 +104,14 @@
 
     <!-- Import History -->
     <div>
-      <h2 class="text-xl font-semibold mb-4">Import History</h2>
-      
+      <h3 class="font-semibold mb-4">Import History</h3>
+
       <!-- Loading State -->
       <div v-if="loadingHistory" class="text-center py-4">
         <ProgressSpinner style="width: 50px; height: 50px" />
         <p class="mt-2 text-gray-600">Loading import history...</p>
       </div>
-      
+
       <!-- Error State -->
       <div v-else-if="historyError" class="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
         <div class="flex items-center">
@@ -119,7 +119,7 @@
           <span class="text-red-600 dark:text-red-400">{{ historyError }}</span>
         </div>
       </div>
-      
+
       <!-- Data Table -->
       <DataTable
         v-else
@@ -192,7 +192,7 @@ const historyError = ref('')
 onMounted(async () => {
   loadingHistory.value = true
   historyError.value = ''
-  
+
   try {
     const historyCollection = await getCollection('importHistory')
     importHistory.value = historyCollection || []

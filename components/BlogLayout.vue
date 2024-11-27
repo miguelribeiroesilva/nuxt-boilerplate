@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-4xl mx-auto px-4 py-2">
     <header class="mb-8">
-      <h1 class="text-4xl font-bold text-gray-900 dark:text-white">
+      <h1 class="text-xl font-bold text-gray-900 dark:text-white">
         <slot name="title" />
       </h1>
       <div class="mt-2 text-gray-600 dark:text-gray-400">

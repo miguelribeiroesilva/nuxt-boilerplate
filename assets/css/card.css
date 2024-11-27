@@ -1,0 +1,78 @@
+.card {
+    @apply bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800;
+    @apply text-sm;
+    margin: 0.5rem;
+    padding: 1rem;
+}
+
+.card h1 {
+    @apply text-base font-medium mb-4 pb-2 border-b border-gray-200 dark:border-gray-800;
+}
+
+.card h3 {
+    @apply text-sm font-medium mb-2;
+}
+
+.card-section {
+    @apply mb-4 last:mb-0;
+}
+
+.card-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-2;
+}
+
+/* Form elements within cards */
+.card .p-inputtext,
+.card .p-password input,
+.card .p-dropdown {
+    @apply text-sm;
+}
+
+.card .p-float-label {
+    @apply mb-4;
+}
+
+.card .p-float-label label {
+    @apply text-sm;
+}
+
+/* Card with hover effect */
+.card.hoverable {
+    @apply transition-all duration-200 hover:shadow-md;
+}
+
+/* Card with different background */
+.card.secondary {
+    @apply bg-gray-50 dark:bg-gray-800/50;
+}
+
+/* Compact card */
+.card.compact {
+    @apply p-2;
+}
+
+.card.compact h1 {
+    @apply text-sm mb-2 pb-1;
+}
+
+/* Status indicators */
+.card .status-badge {
+    @apply px-2 py-0.5 rounded-full text-xs font-medium;
+}
+
+.card .status-badge.success {
+    @apply bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400;
+}
+
+.card .status-badge.warning {
+    @apply bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400;
+}
+
+.card .status-badge.error {
+    @apply bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400;
+}
+
+/* Card actions */
+.card-actions {
+    @apply flex items-center gap-2 mt-4 pt-2 border-t border-gray-200 dark:border-gray-800;
+}

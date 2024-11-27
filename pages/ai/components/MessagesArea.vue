@@ -31,8 +31,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue'
-
 interface Message {
   role: 'user' | 'assistant' | 'error' | 'human' | 'ai'
   content: string

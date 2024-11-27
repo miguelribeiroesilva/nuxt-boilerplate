@@ -139,7 +139,8 @@ export default defineNuxtConfig({
     '@nuxt/content',
     '@nuxtjs/device',
     '@nuxtjs/google-fonts',
-    'nuxt-primevue'
+    'nuxt-primevue',
+    '@dargmuesli/nuxt-cookie-control',
   ],
 
   primevue: {

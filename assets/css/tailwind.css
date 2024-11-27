@@ -2,6 +2,8 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 @import "cookiecontrol.css";
+@import "card.css";
+@import "button.css";
 
 @layer base {
   select {

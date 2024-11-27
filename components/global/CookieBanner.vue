@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { useCookieControl } from '~/composables/useCookieControl'
+import { watch } from '#imports'
+
 const cookieControl = useCookieControl();
 
 // Example to watch for cookie changes
 watch(
   () => cookieControl.cookiesEnabledIds.value,
-  (current, previous) => {
+  (current: string[], previous: string[] | undefined) => {
     if (
       !previous?.includes("necessary") &&
       current?.includes("necessary")

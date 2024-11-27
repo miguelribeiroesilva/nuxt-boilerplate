@@ -1,26 +1,26 @@
 <template>
   <div class="card">
-    <h1 class="text-3xl font-bold mb-6">Firebase Storage Demo</h1>
+    <h1 class="text-lg font-bold mb-4">Firebase Storage Demo</h1>
 
     <!-- File Upload Section -->
-    <div class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Upload Files</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="mb-4">
+      <h3 class="mb-2">Upload Files</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
         <!-- Upload Form -->
-        <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-          <form @submit.prevent="handleUpload" class="space-y-4">
+        <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+          <form @submit.prevent="handleUpload" class="space-y-2">
             <div class="p-float-label">
-              <InputText 
-                id="folder" 
-                v-model="uploadForm.folder" 
+              <InputText
+                id="folder"
+                v-model="uploadForm.folder"
                 class="w-full"
                 :class="{ 'p-invalid': submitted && !uploadForm.folder }"
               />
               <label for="folder">Folder Path</label>
             </div>
-            
+
             <!-- File Input -->
-            <div class="space-y-2">
+            <div class="space-y-1">
               <label class="block text-sm font-medium">File</label>
               <FileUpload
                 mode="basic"
@@ -30,51 +30,51 @@
                 :maxFileSize="10000000"
                 accept="image/*,.pdf,.doc,.docx"
               />
-              <small class="text-gray-500 dark:text-gray-400">
+              <small class="text-xs text-gray-500 dark:text-gray-400">
                 Max file size: 10MB. Supported formats: Images, PDF, DOC
               </small>
             </div>
 
             <!-- Custom Metadata -->
-            <div class="space-y-2">
+            <div class="space-y-1">
               <label class="block text-sm font-medium">Custom Metadata (Optional)</label>
               <div v-for="(value, index) in uploadForm.metadata" :key="index" class="flex gap-2">
                 <div class="p-float-label flex-1">
-                  <InputText 
-                    :id="'key-' + index" 
-                    v-model="uploadForm.metadata[index].key" 
+                  <InputText
+                    :id="'key-' + index"
+                    v-model="uploadForm.metadata[index].key"
                     class="w-full"
                   />
                   <label :for="'key-' + index">Key</label>
                 </div>
                 <div class="p-float-label flex-1">
-                  <InputText 
-                    :id="'value-' + index" 
-                    v-model="uploadForm.metadata[index].value" 
+                  <InputText
+                    :id="'value-' + index"
+                    v-model="uploadForm.metadata[index].value"
                     class="w-full"
                   />
                   <label :for="'value-' + index">Value</label>
                 </div>
-                <Button 
-                  type="button" 
-                  icon="pi pi-times" 
-                  severity="danger" 
-                  text 
+                <Button
+                  type="button"
+                  icon="pi pi-times"
+                  severity="danger"
+                  text
                   @click="removeMetadata(index)"
                 />
               </div>
-              <Button 
-                type="button" 
-                icon="pi pi-plus" 
-                label="Add Metadata" 
-                text 
+              <Button
+                type="button"
+                icon="pi pi-plus"
+                label="Add Metadata"
+                text
                 @click="addMetadata"
               />
             </div>
 
-            <Button 
-              type="submit" 
-              :loading="uploading" 
+            <Button
+              type="submit"
+              :loading="uploading"
               :disabled="!uploadForm.file"
               severity="primary"
               class="w-full"
@@ -85,17 +85,17 @@
         </div>
 
         <!-- Preview -->
-        <div 
-          v-if="uploadForm.file" 
-          class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex flex-col items-center justify-center"
+        <div
+          v-if="uploadForm.file"
+          class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 flex flex-col items-center justify-center"
         >
-          <h3 class="text-lg font-medium mb-3">Preview</h3>
+          <h3 class="text-sm font-medium mb-2">Preview</h3>
           <!-- Image Preview -->
-          <div v-if="isImage" class="mb-4">
-            <Image 
-              :src="previewUrl" 
-              :alt="uploadForm.file.name" 
-              preview 
+          <div v-if="isImage" class="mb-2">
+            <Image
+              :src="previewUrl"
+              :alt="uploadForm.file.name"
+              preview
               class="max-w-full h-auto rounded-lg"
               :pt="{
                 image: { class: 'max-h-[200px] object-contain' }
@@ -103,7 +103,7 @@
             />
           </div>
           <!-- File Info -->
-          <div class="w-full space-y-2">
+          <div class="w-full space-y-1">
             <div class="flex items-center justify-between">
               <span class="font-medium">Name:</span>
               <span>{{ uploadForm.file.name }}</span>
@@ -123,20 +123,20 @@
 
     <!-- File Browser -->
     <div>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold">File Browser</h2>
+      <div class="flex items-center justify-between mb-2">
+        <h3>File Browser</h3>
         <div class="flex items-center gap-2">
           <span class="p-float-label">
-            <InputText 
-              id="path" 
-              v-model="currentPath" 
-              class="w-64"
+            <InputText
+              id="path"
+              v-model="currentPath"
+              class="w-48"
             />
             <label for="path">Current Path</label>
           </span>
-          <Button 
-            icon="pi pi-refresh" 
-            @click="refreshFiles" 
+          <Button
+            icon="pi pi-refresh"
+            @click="refreshFiles"
             :loading="loading"
             text
           />
@@ -144,10 +144,10 @@
       </div>
 
       <!-- Files Table -->
-      <DataTable 
-        :value="files" 
+      <DataTable
+        :value="files"
         :loading="loading"
-        :paginator="true" 
+        :paginator="true"
         :rows="10"
         stripedRows
         class="p-datatable-sm"
@@ -156,8 +156,8 @@
         <Column header="Preview" class="w-24">
           <template #body="{ data }">
             <div v-if="isImageFile(data.name)" class="w-16 h-16">
-              <Image 
-                :src="data.downloadURL" 
+              <Image
+                :src="data.downloadURL"
                 :alt="data.name"
                 preview
                 :pt="{
@@ -165,9 +165,9 @@
                 }"
               />
             </div>
-            <i 
-              v-else 
-              class="pi pi-file text-4xl"
+            <i
+              v-else
+              class="pi pi-file text-xl"
             />
           </template>
         </Column>
@@ -189,17 +189,17 @@
         <Column header="Actions" class="w-24">
           <template #body="{ data }">
             <div class="flex items-center gap-2">
-              <Button 
-                icon="pi pi-download" 
-                text 
-                rounded 
+              <Button
+                icon="pi pi-download"
+                text
+                rounded
                 @click="downloadFile(data)"
                 v-tooltip.top="'Download'"
               />
-              <Button 
-                icon="pi pi-trash" 
-                text 
-                rounded 
+              <Button
+                icon="pi pi-trash"
+                text
+                rounded
                 severity="danger"
                 @click="confirmDelete(data)"
                 v-tooltip.top="'Delete'"
@@ -212,10 +212,10 @@
   </div>
 
   <!-- Delete Confirmation -->
-  <Dialog 
-    v-model:visible="deleteDialog.visible" 
-    modal 
-    header="Confirm Delete" 
+  <Dialog
+    v-model:visible="deleteDialog.visible"
+    modal
+    header="Confirm Delete"
     :style="{ width: '450px' }"
   >
     <div class="space-y-4">
@@ -223,13 +223,13 @@
       <div class="font-medium">{{ deleteDialog.file?.name }}</div>
     </div>
     <template #footer>
-      <Button 
-        label="No" 
-        icon="pi pi-times" 
-        text 
+      <Button
+        label="No"
+        icon="pi pi-times"
+        text
         @click="deleteDialog.visible = false"
       />
-      <Button 
+      <Button
         label="Delete"
         icon="pi pi-trash"
         severity="danger"
@@ -241,8 +241,13 @@
 </template>
 
 <script setup lang="ts">
+import Image from 'primevue/image';
 const { uploadFile, deleteFile: deleteStorageFile, listFiles, loading, error } = useStorage();
 const toast = useToast();
+
+definePageMeta({
+  layout: "fullscreen",
+});
 
 // State
 const files = ref<any[]>([]);
@@ -300,9 +305,9 @@ const handleUpload = async () => {
 
     // Create file path
     const path = `${uploadForm.value.folder.replace(/^\/+|\/+$/g, '')}/${uploadForm.value.file.name}`;
-    
+
     const result = await uploadFile(path, uploadForm.value.file, metadata);
-    
+
     toast.add({
       severity: 'success',
       summary: 'Success',
@@ -365,17 +370,17 @@ const confirmDelete = (file: any) => {
 const handleDeleteFile = async () => {
   try {
     if (!deleteDialog.value.file) return;
-    
+
     await deleteStorageFile(deleteDialog.value.file.fullPath);
     await refreshFiles();
-    
+
     toast.add({
       severity: 'success',
       summary: 'Success',
       detail: 'File deleted successfully',
       life: 3000,
     });
-    
+
     deleteDialog.value.visible = false;
     deleteDialog.value.file = null;
   } catch (err: any) {
@@ -430,11 +435,6 @@ watch(error, (newError) => {
 // Initial load
 onMounted(() => {
   refreshFiles();
-});
-
-// Set page metadata
-definePageMeta({
-  layout: 'default'
 });
 </script>
 

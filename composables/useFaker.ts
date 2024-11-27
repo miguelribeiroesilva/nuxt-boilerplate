@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { computed } from 'vue'
 
 /**
  * Faker Composable
@@ -46,7 +47,7 @@ export const useFaker = () => {
     brand: faker.company.name(),
     sku: faker.string.alphanumeric(8).toUpperCase(),
     stock: faker.number.int({ min: 0, max: 1000 }),
-    rating: faker.number.float({ min: 1, max: 5, precision: 0.1 }),
+    rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
     reviews: faker.number.int({ min: 0, max: 500 }),
     tags: Array.from({ length: faker.number.int({ min: 1, max: 5 }) }, () => faker.commerce.productAdjective()),
     createdAt: faker.date.past(),
@@ -123,7 +124,7 @@ export const useFaker = () => {
       name: faker.person.fullName(),
       avatar: faker.image.avatar(),
     },
-    rating: faker.number.int({ min: 1, max: 5 }),
+    rating: faker.number.float({ min: 1, max: 5, fractionDigits: 1 }),
     createdAt: faker.date.recent(),
     likes: faker.number.int({ min: 0, max: 100 }),
     replies: Array.from(

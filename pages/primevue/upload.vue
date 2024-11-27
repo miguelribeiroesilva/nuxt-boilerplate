@@ -1,6 +1,6 @@
 <template>
   <div class="card">
-    <h2 class="text-2xl font-bold mb-4">File Upload Demos</h2>
+    <h1 class="text-xl font-bold mb-6">File Upload Demos</h1>
 
     <!-- Basic Upload -->
     <div class="mb-8">
@@ -139,13 +139,13 @@ definePageMeta({
 </script>
 
 <style scoped>
-.card {
+/* .card {
   background: var(--surface-card);
   padding: 2rem;
   border-radius: 10px;
   margin: 2rem;
   color: var(--text-color);
-}
+} */
 
 :deep(.p-fileupload-content) {
   padding: 2rem;

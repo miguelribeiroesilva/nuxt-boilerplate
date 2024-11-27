@@ -11,7 +11,8 @@
       "nuxt",
       "@nuxtjs/i18n",
       "@pinia/nuxt",
-      "vue"
+      "vue",
+      "./types/nuxt-app"
     ],
     "moduleResolution": "node",
     "esModuleInterop": true,
@@ -19,5 +20,8 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
   },
+  "include": [
+    "types/**/*.d.ts"
+  ],
   "exclude": ["node_modules"]
 }

@@ -1,10 +1,10 @@
 <template>
   <div class="card">
-    <h1 class="text-3xl font-bold mb-6">Firestore CRUD Demo</h1>
+    <h1 class="text-xl font-bold mb-6">Firestore CRUD Demo</h1>
 
     <!-- Toolbar -->
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">Users Collection</h2>
+      <h3 class="text-xl font-semibold">Users Collection</h3>
       <Button @click="openNew" severity="success">
         <i class="pi pi-plus mr-2"></i>
         Add User
@@ -35,25 +35,25 @@
 
       <!-- Table Columns -->
       <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-      
+
       <Column field="name" header="Name" sortable>
         <template #body="{ data }">
           {{ data.name }}
         </template>
       </Column>
-      
+
       <Column field="email" header="Email" sortable>
         <template #body="{ data }">
           {{ data.email }}
         </template>
       </Column>
-      
+
       <Column field="role" header="Role" sortable>
         <template #body="{ data }">
           <Tag :value="data.role" :severity="getRoleSeverity(data.role)" />
         </template>
       </Column>
-      
+
       <Column field="createdAt" header="Created At" sortable>
         <template #body="{ data }">
           {{ formatTimestamp(data.createdAt) }}
@@ -71,31 +71,31 @@
     </DataTable>
 
     <!-- User Dialog -->
-    <Dialog 
-      v-model:visible="userDialog" 
-      :style="{ width: '450px' }" 
-      :header="dialogMode === 'create' ? 'Add User' : 'Edit User'" 
-      :modal="true" 
+    <Dialog
+      v-model:visible="userDialog"
+      :style="{ width: '450px' }"
+      :header="dialogMode === 'create' ? 'Add User' : 'Edit User'"
+      :modal="true"
       class="p-fluid"
     >
       <div class="field mt-4">
         <label for="name">Name</label>
-        <InputText 
-          id="name" 
-          v-model.trim="user.name" 
+        <InputText
+          id="name"
+          v-model.trim="user.name"
           :class="{ 'p-invalid': submitted && !user.name }"
-          required 
+          required
         />
         <small class="p-error" v-if="submitted && !user.name">Name is required.</small>
       </div>
 
       <div class="field mt-4">
         <label for="email">Email</label>
-        <InputText 
-          id="email" 
-          v-model.trim="user.email" 
+        <InputText
+          id="email"
+          v-model.trim="user.email"
           :class="{ 'p-invalid': submitted && !user.email }"
-          required 
+          required
         />
         <small class="p-error" v-if="submitted && !user.email">Email is required.</small>
       </div>
@@ -121,10 +121,10 @@
     </Dialog>
 
     <!-- Delete Confirmation -->
-    <Dialog 
-      v-model:visible="deleteDialog" 
-      :style="{ width: '450px' }" 
-      header="Confirm" 
+    <Dialog
+      v-model:visible="deleteDialog"
+      :style="{ width: '450px' }"
+      header="Confirm"
       :modal="true"
     >
       <div class="confirmation-content">
@@ -277,7 +277,7 @@ const deleteUser = async () => {
     deleteDialog.value = false;
     user.value = {};
     await loadUsers();
-    
+
     toast.add({
       severity: 'success',
       summary: 'Success',
@@ -301,8 +301,9 @@ onMounted(() => {
 
 // Set page metadata
 definePageMeta({
-  layout: 'default'
+  layout: "fullscreen",
 });
+
 </script>
 
 <style scoped>
