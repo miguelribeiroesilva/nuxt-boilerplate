@@ -36,11 +36,15 @@ interface Message {
   content: string
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   messages: Message[]
   isLoading?: boolean
   hideScrollbar?: boolean
-}>()
+}>(), {
+  messages: () => [],
+  isLoading: false,
+  hideScrollbar: false
+})
 
 const messagesContainer = ref<HTMLElement | null>(null)
 
@@ -68,42 +72,3 @@ watch(() => props.isLoading, (newVal) => {
   }
 })
 </script>
-
-<style scoped>
-@import '~/assets/css/chats.css';
-
-.typing-indicator {
-  @apply flex space-x-1;
-}
-
-.typing-indicator span {
-  @apply w-2 h-2 bg-gray-400 rounded-full;
-  animation: bounce 1.4s infinite ease-in-out;
-}
-
-.typing-indicator span:nth-child(1) {
-  animation-delay: -0.32s;
-}
-
-.typing-indicator span:nth-child(2) {
-  animation-delay: -0.16s;
-}
-
-@keyframes bounce {
-  0%, 80%, 100% {
-    transform: scale(0);
-  }
-  40% {
-    transform: scale(1.0);
-  }
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-</style>

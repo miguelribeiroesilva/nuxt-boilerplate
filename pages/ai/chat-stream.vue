@@ -1,16 +1,14 @@
 <template>
   <main class="flex flex-col min-h-screen h-screen w-screen overflow-hidden bg-white dark:bg-gray-800">
     <div class="flex-none p-1 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Streaming Chat</h1>
+      <BackButton />
+      <Button label="Streaming Chat" severity="info" disabled />
     </div>
 
     <div class="flex-1 mt-4 overflow-hidden">
       <div v-if="messages.length === 0 && !isLoading" class="flex flex-col items-center justify-center h-full">
         <div class="max-w-2xl text-center text-gray-600 dark:text-gray-400">
-          <blockquote class="italic">
-            "{{ currentQuote.text }}"
-          </blockquote>
-          <p class="mt-2 font-semibold">- {{ currentQuote.author }}</p>
+          <p class="text-lg">Start a new conversation</p>
         </div>
       </div>
 
@@ -38,10 +36,6 @@
                 <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
               </div>
             </div>
-          </div>
-          <div class="mt-2 text-sm text-gray-500 italic">
-            "{{ currentQuote.text }}"
-            <span class="block mt-1 text-xs">- {{ currentQuote.author }}</span>
           </div>
         </div>
       </div>
@@ -72,6 +66,7 @@ import MessagesArea from './components/MessagesArea.vue'
 import ChatInput from './components/ChatInput.vue'
 import { useAiQuotes } from '~/composables/useAiQuotes'
 import { SystemMessage, HumanMessage, AIMessage } from '@langchain/core/messages'
+import Button from 'primevue/button'
 
 interface Message {
   id?: string
@@ -365,7 +360,4 @@ watch(() => messages.value[messages.value.length - 1]?.content, () => {
   })
 })
 
-definePageMeta({
-  layout: "fullscreen",
-});
 </script>

@@ -1,10 +1,13 @@
 <template>
-  <div class="card">
-    <h1 class="text-xl font-bold mb-6">File Upload Demos</h1>
-
-    <!-- Basic Upload -->
-    <div class="mb-8">
-      <h3 class="text-xl font-semibold mb-3">Basic Upload</h3>
+  <Card>
+      <template #content>
+        <BackButton />
+        <Button label="File Upload Demos" severity="info" disabled  />
+      </template>
+  </Card>
+  <Card>
+      <template #title>Basic Upload</template>
+      <template #content>
       <FileUpload
         mode="basic"
         name="basic"
@@ -13,12 +16,12 @@
         :maxFileSize="1000000"
         @upload="onUpload"
       />
-    </div>
-
-    <!-- Advanced Upload -->
-    <div class="mb-8">
-      <h3 class="text-xl font-semibold mb-3">Advanced Upload</h3>
-      <FileUpload
+      </template>
+  </Card>
+  <Card>
+      <template #title>Advanced Upload</template>
+      <template #content>
+        <FileUpload
         name="advanced"
         url="/api/upload"
         :multiple="true"
@@ -42,11 +45,11 @@
           </div>
         </template>
       </FileUpload>
-    </div>
-
-    <!-- Auto Upload -->
-    <div class="mb-8">
-      <h3 class="text-xl font-semibold mb-3">Auto Upload</h3>
+      </template>
+  </Card>
+  <Card>
+    <template #title>Auto Upload</template>
+    <template #content>
       <FileUpload
         name="auto"
         url="/api/upload"
@@ -56,11 +59,12 @@
         @upload="onUpload"
         :auto="true"
       />
-    </div>
+    </template>
+</Card>
 
-    <!-- Template Upload -->
-    <div class="mb-8">
-      <h3 class="text-xl font-semibold mb-3">Template Upload</h3>
+    <Card>
+    <template #title>Template Upload</template>
+    <template #content>
       <FileUpload
         name="template"
         @uploader="customUploader"
@@ -79,17 +83,14 @@
           </div>
         </template>
       </FileUpload>
-    </div>
-  </div>
+    </template>
+</Card>
+
 </template>
 
 <script setup lang="ts">
 
 import { useToast } from 'primevue/usetoast';
-
-definePageMeta({
-  layout: 'default'
-});
 
 const toast = useToast();
 
@@ -133,39 +134,5 @@ const customUploader = async (event: any) => {
     });
   }
 };
-definePageMeta({
-  layout: "fullscreen",
-});
+
 </script>
-
-<style scoped>
-/* .card {
-  background: var(--surface-card);
-  padding: 2rem;
-  border-radius: 10px;
-  margin: 2rem;
-  color: var(--text-color);
-} */
-
-:deep(.p-fileupload-content) {
-  padding: 2rem;
-  background: var(--surface-section);
-  border-color: var(--surface-border);
-}
-
-:deep(.p-fileupload-row) {
-  color: var(--text-color);
-}
-
-:deep(.p-button) {
-  margin-right: 0.5rem;
-}
-
-:deep(.p-fileupload-choose) {
-  background: var(--primary-color);
-}
-
-:deep(.empty-content) {
-  color: var(--text-color-secondary);
-}
-</style>

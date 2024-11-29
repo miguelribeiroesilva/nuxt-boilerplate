@@ -1,0 +1,26 @@
+.p-fileupload .p-fileupload-buttonbar,
+.p-fileupload .p-fileupload-content,
+.p-fileupload .p-fileupload-file {
+    @apply border-0;
+}
+.p-card {
+    @apply border;
+    @apply border-gray-200;
+    @apply bg-gray-50;
+    @apply dark:border-gray-700;
+    @apply dark:bg-gray-800;
+}
+.p-card .p-card-title {
+    @apply text-base;
+}
+.p-button {
+    @apply px-2 py-1;
+    @apply text-sm;
+}
+.p-inputtext {
+    @apply text-sm;
+    @apply p-0;
+}
+.p-float-label > label {
+    @apply text-sm;
+}

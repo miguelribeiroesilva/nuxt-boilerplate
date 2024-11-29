@@ -40,6 +40,26 @@ const items = [
         label: 'Streaming Chat',
         icon: 'pi pi-bolt',
         command: () => navigateTo('/ai/chat-stream')
+      },
+            {
+        label: 'ReAct Agent',
+        icon: 'pi pi-bolt',
+        command: () => navigateTo('/ai/react-agent')
+      },
+            {
+        label: 'Reflection Agent',
+        icon: 'pi pi-bolt',
+        command: () => navigateTo('/ai/reflection-agent')
+      },
+            {
+        label: 'Retrieval Agent',
+        icon: 'pi pi-bolt',
+        command: () => navigateTo('/ai/retrieval-agent')
+      },
+                  {
+        label: 'Mulmti Agent',
+        icon: 'pi pi-bolt',
+        command: () => navigateTo('/ai/multi-agent')
       }
     ]
   },

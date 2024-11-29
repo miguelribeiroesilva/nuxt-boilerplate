@@ -9,7 +9,7 @@
   >
     <template #header>
       <div class="flex justify-between items-center w-full">
-        <h2 class="text-xl font-semibold">Model Configuration</h2>
+        <Button label="Model Configuration" severity="info" disabled />
         <Button
           icon="pi pi-angle-left"
           text
@@ -175,23 +175,3 @@ const resetConfig = () => {
   emit('update:config', { ...defaultConfig });
 };
 </script>
-
-<style scoped>
-.model-config-sidebar {
-  width: 400px;
-}
-
-:deep(.p-sidebar-header) {
-  padding: 1rem;
-}
-
-:deep(.p-sidebar) {
-  height: 100vh;
-}
-
-@media screen and (max-width: 768px) {
-  .model-config-sidebar {
-    width: 100%;
-  }
-}
-</style>

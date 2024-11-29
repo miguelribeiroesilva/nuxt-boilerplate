@@ -1,6 +1,7 @@
 <template>
   <div class="card">
-    <h1 class="text-xl font-bold mb-6">Data Import</h1>
+    <BackButton />
+    <Button severity="info" disabled>Data Import</Button>
 
     <!-- Import Form -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -312,19 +313,15 @@ const handleImport = async () => {
     submitted.value = false
   }
 }
+definePageMeta({
+  layout: "fullscreen"
+});
 </script>
 
 <style scoped>
-.p-dropdown {
-  width: 100%;
-}
-
-.p-inputnumber {
-  width: 100%;
-}
-
 pre {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+
 </style>

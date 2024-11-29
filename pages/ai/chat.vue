@@ -1,7 +1,8 @@
 <template>
   <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
     <div class="flex-none p-1 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">AI Chat</h1>
+      <BackButton />
+      <Button label="AI Chat" severity="info" disabled />
     </div>
 
     <div class="flex-1 mt-4 overflow-hidden">
@@ -184,11 +185,7 @@ const handleApiKeySubmit = async (key: string) => {
   }
 };
 
-const updateConfig = (config: any) => {
+const updateConfig = (config: AgentConfig) => {
   modelConfig.value = config;
 };
-
-definePageMeta({
-  layout: "fullscreen",
-});
 </script>

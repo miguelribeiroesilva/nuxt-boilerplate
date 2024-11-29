@@ -1,6 +1,7 @@
 <template>
   <div class="card">
-    <h1 class="text-xl font-bold mb-6">Firestore CRUD Demo</h1>
+    <BackButton />
+    <Button severity="info" disabled>Firestore CRUD Demo</Button>
 
     <!-- Toolbar -->
     <div class="flex justify-between items-center mb-4">
@@ -299,45 +300,5 @@ onMounted(() => {
   loadUsers();
 });
 
-// Set page metadata
-definePageMeta({
-  layout: "fullscreen",
-});
 
 </script>
-
-<style scoped>
-.card {
-  background: var(--surface-card);
-  padding: 2rem;
-  border-radius: 10px;
-  margin: 2rem;
-}
-
-:deep(.p-datatable-header) {
-  background: var(--surface-section);
-  border: 1px solid var(--surface-border);
-}
-
-:deep(.p-dialog-header),
-:deep(.p-dialog-content),
-:deep(.p-dialog-footer) {
-  background: var(--surface-card);
-}
-
-:deep(.p-dialog-header),
-:deep(.p-dialog-footer) {
-  padding: 1.5rem;
-}
-
-:deep(.p-dialog-content) {
-  padding: 0 1.5rem;
-}
-
-.confirmation-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 0;
-}
-</style>

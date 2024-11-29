@@ -1,22 +1,12 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
-@import "cookiecontrol.css";
-@import "card.css";
-@import "button.css";
+@import './custom.css';
 
-@layer base {
-  select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    padding-right: 5px;
-    padding-left: 5px;
-  }
+@layer tailwind-base, primevue, tailwind-utilities;
+
+@layer tailwind-base {
+    @tailwind base;
 }
-html {
-  @apply bg-slate-100;
-}
-html.dark {
-  @apply bg-slate-900;
+
+@layer tailwind-utilities {
+    @tailwind components;
+    @tailwind utilities;
 }

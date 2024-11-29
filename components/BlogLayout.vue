@@ -1,9 +1,9 @@
 <template>
   <div class="max-w-4xl mx-auto px-4 py-2">
     <header class="mb-8">
-      <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+      <Button severity="info" disabled>
         <slot name="title" />
-      </h1>
+      </Button>
       <div class="mt-2 text-gray-600 dark:text-gray-400">
         <slot name="meta" />
       </div>

@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref } from '#imports';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { ChatOpenAI } from '@langchain/openai';
 import { ChatAnthropic } from '@langchain/anthropic';

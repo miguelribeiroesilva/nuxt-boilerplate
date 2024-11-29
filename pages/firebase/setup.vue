@@ -1,6 +1,7 @@
 <template>
   <div class="card">
-    <h1 class="font-bold mb-6">Firebase Setup</h1>
+    <BackButton />
+    <Button severity="info" disabled>Firebase</Button>
 
     <!-- Configuration Status -->
     <div class="mb-4">
@@ -86,25 +87,5 @@ const handleTestConnection = async () => {
   });
 };
 
-// Set page metadata
-definePageMeta({
-  layout: "fullscreen",
-});
+
 </script>
-
-<style scoped>
-.card {
-  background: var(--surface-card);
-  padding: 2rem;
-  border-radius: 10px;
-  margin: 2rem;
-}
-
-a {
-  color: var(--primary-color);
-}
-
-pre {
-  font-family: monospace;
-}
-</style>

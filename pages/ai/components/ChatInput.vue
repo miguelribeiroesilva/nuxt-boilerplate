@@ -23,20 +23,25 @@
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: string;
   placeholder?: string;
   disabled?: boolean;
   loading?: boolean;
-}>();
+}>(), {
+  modelValue: '',
+  placeholder: '',
+  disabled: false,
+  loading: false
+});
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
-  (e: 'send'): void;
+  (e: 'send-message'): void;
   (e: 'input', event: Event): void;
 }>();
 
-const localMessage = ref(props.modelValue);
+const localMessage = ref(props.modelValue || '');
 
 // Watch for external changes
 watch(() => props.modelValue, (newValue) => {
@@ -57,10 +62,7 @@ const handleInput = (e: Event) => {
 
 const handleSend = () => {
   if (!localMessage.value.trim() || props.disabled) return;
-  emit('send');
+  emit('send-message');
+  localMessage.value = '';
 };
 </script>
-
-<style scoped>
-/* Add any component-specific styles here */
-</style>

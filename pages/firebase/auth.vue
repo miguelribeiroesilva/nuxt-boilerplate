@@ -1,7 +1,7 @@
 <template>
-  <div class="card">
-    <h1 class="text-xl font-bold mb-6">Firebase Authentication Demo</h1>
-
+  <Card>
+    <BackButton />
+    <Button label="Firebase Authentication Demo" severity="info" disabled />
     <!-- User Profile -->
     <div v-if="currentUser" class="mb-8">
       <div class="flex items-center justify-between">
@@ -12,7 +12,7 @@
             <p class="text-sm opacity-75">{{ currentUser.email }}</p>
           </div>
         </div>
-        <Button @click="signOut" severity="danger" text>
+        <Button @click="signOut" class="p-button p-component p-button-primary mr-2" severity="danger" text>
           <i class="pi pi-sign-out mr-2"></i>
           Sign Out
         </Button>
@@ -31,7 +31,7 @@
           <Button
             v-if="!currentUser.emailVerified"
             @click="sendVerificationEmail"
-            class="mt-3"
+            class="p-button p-component p-button-primary mr-2 mt-3"
             severity="info"
             text
           >
@@ -63,6 +63,7 @@
           <Button
             @click="updateProfile"
             :loading="updating"
+            class="p-button p-component p-button-primary mr-2"
             severity="success"
           >
             Update Profile
@@ -80,7 +81,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Email/Password Sign In -->
             <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-              <h3>Email Sign In</h3>
+              <Button severity="info" disabled/>
               <form @submit.prevent="handleEmailSignIn" class="space-y-4">
                 <div class="p-float-label">
                   <InputText
@@ -107,6 +108,7 @@
                   <Button
                     type="submit"
                     :loading="loading"
+                    class="p-button p-component p-button-primary mr-2"
                     severity="primary"
                   >
                     Sign In
@@ -114,6 +116,7 @@
                   <Button
                     type="button"
                     @click="showForgotPassword = true"
+                    class="p-button p-component p-button-primary mr-2"
                     text
                     size="small"
                   >
@@ -129,24 +132,25 @@
               <div class="space-y-3">
                 <Button
                   @click="signInWithGoogle"
+                  class="p-button p-component p-button-primary mr-2 w-full justify-center"
                   severity="secondary"
-                  class="w-full justify-center"
                 >
                   <i class="pi pi-google mr-2"></i>
                   Continue with Google
                 </Button>
                 <Button
                   @click="signInWithGithub"
+                  class="p-button p-component p-button-primary mr-2 w-full justify-center"
                   severity="secondary"
-                  class="w-full justify-center"
                 >
                   <i class="pi pi-github mr-2"></i>
                   Continue with GitHub
                 </Button>
                 <Button
                   @click="signInAnonymously"
+                  class="p-button p-component p-button-primary mr-2 w-full justify-center"
+                  severity="info"
                   text
-                  class="w-full justify-center"
                 >
                   <i class="pi pi-user mr-2"></i>
                   Continue Anonymously
@@ -208,8 +212,8 @@
               <Button
                 type="submit"
                 :loading="loading"
+                class="p-button p-component p-button-primary mr-2 w-full"
                 severity="primary"
-                class="w-full"
               >
                 Create Account
               </Button>
@@ -218,7 +222,7 @@
         </TabPanel>
       </TabView>
     </div>
-  </div>
+  </Card>
 
   <!-- Forgot Password Dialog -->
   <Dialog
@@ -246,6 +250,7 @@
       <Button
         @click="handleResetPassword"
         :loading="resetting"
+        class="p-button p-component p-button-primary mr-2"
         severity="primary"
       >
         Send Reset Link
@@ -510,25 +515,5 @@ watch(authError, (error: any) => {
 });
 
 // Set page metadata
-definePageMeta({
-  layout: "fullscreen"
-});
+
 </script>
-
-<style scoped>
-.card {
-  background: var(--surface-card);
-  padding: 2rem;
-  border-radius: 10px;
-  margin: 2rem;
-}
-
-:deep(.p-password-input) {
-  width: 100%;
-}
-
-:deep(.p-button) {
-  display: inline-flex;
-  align-items: center;
-}
-</style>

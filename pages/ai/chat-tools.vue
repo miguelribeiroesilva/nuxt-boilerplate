@@ -1,7 +1,8 @@
 <template>
   <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
     <div class="flex-none p-1 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Chat with Tools</h1>
+      <BackButton />
+      <Button label="Chat with Tools" severity="info" disabled />
     </div>
 
     <div class="flex-1 mt-4 overflow-hidden">
@@ -172,8 +173,4 @@ const handleApiKeySubmit = async (key: string) => {
     error.value = 'Failed to initialize with the provided API key.';
   }
 };
-
-definePageMeta({
-  layout: "fullscreen",
-});
 </script>
