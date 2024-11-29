@@ -1,3 +1,5 @@
+import { ref } from 'vue';
+
 export interface AgentRole {
   name: string;
   description: string;
@@ -43,7 +45,7 @@ const defaultConfig: AgentConfig = {
 };
 
 export function useAgentConfig() {
-  const config = ref<AgentConfig>('agentConfig', () => ({ ...defaultConfig }));
+  const config = ref<AgentConfig>({ ...defaultConfig });
 
   const updateRole = (role: AgentRole) => {
     const updatedRoles = config.value.roles.map((r: AgentRole) =>

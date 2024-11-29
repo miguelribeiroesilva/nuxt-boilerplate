@@ -1,57 +1,77 @@
 <template>
-  <Card>
-    <template #content>
-      <BackButton />
-      <Button label="Reflection Agent Demo" severity="info" disabled />
-    </template>
-  </Card>
+  <div>
+    <Card class="mb-4">
+      <template #content>
+        <BackButton />
+        <Button label="Reflection Agent Demo" severity="info" disabled />
+      </template>
+    </Card>
 
-  <Card class="mb-4">
-    <template #title>Agent Status</template>
-    <template #content>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <PerformanceMetrics :metrics="metrics" />
-        <AgentStrategy
-          v-model:maxReflections="maxReflections"
-          v-model:temperature="temperature"
-        />
-      </div>
-    </template>
-  </Card>
-
-  <Card>
-    <template #title>Agent Interaction</template>
-    <template #content>
-      <div class="flex flex-col h-[600px]">
-        <MessagesArea
-          :messages="messages"
-          :is-loading="isLoading"
-          :hide-scrollbar="true"
-          class="flex-1"
-        />
-        <div class="flex-none p-1 border-t dark:border-gray-700">
-          <ChatInput
-            v-model="userInput"
-            :is-loading="isLoading"
-            @send-message="handleSendMessage"
-            :placeholder="'Ask a question or describe a task...'"
+    <Card class="mb-4">
+      <template #title>Agent Status</template>
+      <template #content>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <PerformanceMetrics :metrics="metrics" />
+          <AgentStrategy
+            v-model:maxReflections="maxReflections"
+            v-model:temperature="temperature"
           />
         </div>
-      </div>
-    </template>
-  </Card>
+      </template>
+    </Card>
+
+    <Card>
+      <template #title>Agent Interaction</template>
+      <template #content>
+        <div class="flex flex-col h-[600px]">
+          <MessagesArea
+            :messages="messages"
+            :is-loading="isLoading"
+            :hide-scrollbar="true"
+            class="flex-1"
+          />
+          <div class="flex-none p-1 border-t dark:border-gray-700">
+            <ChatInput
+              v-model="userInput"
+              :is-loading="isLoading"
+              @send-message="handleSendMessage"
+              :placeholder="'Ask a question or describe a task...'"
+            />
+          </div>
+        </div>
+      </template>
+    </Card>
+
+    <ApiKeyDialog
+      v-if="showApiKeyDialog"
+      @close="showApiKeyDialog = false"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { PromptTemplate } from '@langchain/core/prompts';
-import { StructuredOutputParser } from 'langchain/output_parsers';
+import { StructuredOutputParser } from '@langchain/core/output_parsers';
+import Card from 'primevue/card';
+import Button from 'primevue/button';
+import BackButton from '~/components/BackButton.vue';
+import MessagesArea from './components/MessagesArea.vue';
+import ChatInput from './components/ChatInput.vue';
+import ApiKeyDialog from '~/components/ApiKeyDialog.vue';
 import PerformanceMetrics from './components/PerformanceMetrics.vue';
 import AgentStrategy from './components/AgentStrategy.vue';
-import { useAgentMetrics } from '@/composables/useAgentMetrics';
+import { useAgentMetrics } from '~/composables/useAgentMetrics';
+import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
+
+// Types
+interface Message {
+  role: 'user' | 'assistant' | 'error' | 'system';
+  content: string;
+}
 
 // Component state
 const messages = ref<Message[]>([]);
@@ -59,6 +79,7 @@ const userInput = ref('');
 const isLoading = ref(false);
 const maxReflections = ref(3);
 const temperature = ref(0.7);
+const showApiKeyDialog = ref(false);
 
 // Get metrics from composable
 const { 
@@ -68,11 +89,25 @@ const {
   incrementReflections 
 } = useAgentMetrics();
 
+// API Key handling
+const { validateApiKey, getStoredApiKey } = useApiKeyValidation();
+
 // Initialize OpenAI model
-const model = new ChatOpenAI({
-  modelName: 'gpt-3.5-turbo',
-  temperature: 0,
-});
+let model: ChatOpenAI | null = null;
+
+const initializeModel = async (apiKey: string) => {
+  try {
+    model = new ChatOpenAI({
+      modelName: 'gpt-3.5-turbo',
+      temperature: temperature.value,
+      openAIApiKey: apiKey,
+    });
+    return true;
+  } catch (error) {
+    console.error('Error initializing model:', error);
+    return false;
+  }
+};
 
 // Create output parsers
 const responseParser = StructuredOutputParser.fromNamesAndDescriptions({
@@ -98,35 +133,30 @@ Please provide a response in the following format:
 answer: Your direct response to the question
 confidence: Your confidence in the answer (0-1)
 reasoning: Your reasoning process
-
-Response:
 `);
 
 const reflectionPrompt = PromptTemplate.fromTemplate(`
-You are a reflection module analyzing the following interaction:
+Review the following response to the question: {question}
 
-Original Question: {question}
-Previous Response:
-{previousResponse}
+Response: {previous_response}
 
-Critique this response and provide an improved version in the following format:
-evaluation: "good" or "needs_improvement"
+Please evaluate this response and provide improvements in the following format:
+evaluation: Whether the response is good or needs improvement
 critique: Specific aspects that could be improved
 improvement: An improved version of the response
-confidence: New confidence score (0-1)
-
-Focus on:
-1. Accuracy and completeness
-2. Clarity and conciseness
-3. Logical reasoning
-4. Practical applicability
-
-Response:
+confidence: Your confidence in the improved response (0-1)
 `);
 
 // Handle sending messages
 async function handleSendMessage() {
   if (!userInput.value.trim() || isLoading.value) return;
+
+  // Check for API key
+  const apiKey = getStoredApiKey();
+  if (!apiKey) {
+    showApiKeyDialog.value = true;
+    return;
+  }
 
   const question = userInput.value;
   messages.value.push({
@@ -139,82 +169,63 @@ async function handleSendMessage() {
   incrementTotal();
 
   try {
-    let currentResponse;
-    let currentConfidence = 0;
-    let reflectionCount = 0;
-    let finalResponse;
-
-    // Initial response
-    const initialResult = await model.invoke([
-      new HumanMessage(await initialPrompt.format({
-        question,
-      })),
-    ]);
-
-    currentResponse = await responseParser.parse(initialResult.content);
-    currentConfidence = currentResponse.confidence;
-
-    // Reflection loop
-    while (reflectionCount < maxReflections.value && currentConfidence < 0.9) {
-      reflectionCount++;
-      incrementReflections();
-
-      // Add reflection message
-      messages.value.push({
-        role: 'reflection',
-        content: `Reflecting on response (Attempt ${reflectionCount})...`,
-      });
-
-      // Get reflection
-      const reflectionResult = await model.invoke([
-        new HumanMessage(await reflectionPrompt.format({
-          question,
-          previousResponse: JSON.stringify(currentResponse),
-        })),
-      ]);
-
-      const reflection = await reflectionParser.parse(reflectionResult.content);
-
-      // Update current response if improvement is suggested
-      if (reflection.evaluation === 'needs_improvement' && reflection.confidence > currentConfidence) {
-        currentResponse = {
-          answer: reflection.improvement,
-          confidence: reflection.confidence,
-          reasoning: currentResponse.reasoning,
-        };
-        currentConfidence = reflection.confidence;
-
-        messages.value.push({
-          role: 'reflection',
-          content: `Critique: ${reflection.critique}\nImprovement made.`,
-        });
-      } else {
-        messages.value.push({
-          role: 'reflection',
-          content: 'Current response deemed satisfactory.',
-        });
-        break;
+    // Ensure model is initialized
+    if (!model) {
+      const initialized = await initializeModel(apiKey);
+      if (!initialized) {
+        throw new Error('Failed to initialize model');
       }
     }
 
-    // Final response
-    finalResponse = currentResponse;
-    messages.value.push({
-      role: 'assistant',
-      content: `Answer: ${finalResponse.answer}\n\nReasoning: ${finalResponse.reasoning}\n\nConfidence: ${(finalResponse.confidence * 100).toFixed(1)}%`,
-    });
+    // Get initial response
+    const response = await model!.invoke([
+      new SystemMessage(initialPrompt.template),
+      new HumanMessage(question)
+    ]);
 
-    // Update metrics
-    if (currentConfidence >= 0.8) {
-      incrementSuccesses();
+    const parsedResponse = await responseParser.parse(response.content);
+    let currentResponse = parsedResponse;
+    let reflectionCount = 0;
+
+    // Reflection loop
+    while (reflectionCount < maxReflections.value && currentResponse.confidence < 0.9) {
+      reflectionCount++;
+      incrementReflections();
+
+      const reflection = await model!.invoke([
+        new SystemMessage(reflectionPrompt.template),
+        new HumanMessage(JSON.stringify({
+          question,
+          previous_response: currentResponse
+        }))
+      ]);
+
+      const parsedReflection = await reflectionParser.parse(reflection.content);
+      
+      if (parsedReflection.evaluation === 'good') {
+        break;
+      }
+
+      currentResponse = {
+        answer: parsedReflection.improvement,
+        confidence: parsedReflection.confidence,
+        reasoning: currentResponse.reasoning + '\n\nImproved after reflection: ' + parsedReflection.critique
+      };
     }
 
+    // Add final response to messages
+    messages.value.push({
+      role: 'assistant',
+      content: `Answer: ${currentResponse.answer}\n\nReasoning: ${currentResponse.reasoning}\n\nConfidence: ${currentResponse.confidence}`
+    });
+
+    incrementSuccesses();
   } catch (error) {
+    console.error('Error:', error);
     messages.value.push({
       role: 'error',
-      content: 'An error occurred while processing your request.',
+      content: 'An error occurred while processing your request.'
     });
-    console.error('Error:', error);
   } finally {
     isLoading.value = false;
   }
@@ -222,6 +233,23 @@ async function handleSendMessage() {
 
 // Watch temperature changes
 watch(temperature, (newTemp) => {
-  model.temperature = newTemp;
+  if (model) {
+    model.temperature = newTemp;
+  }
+});
+
+// Initialize on mount
+onMounted(async () => {
+  const apiKey = getStoredApiKey();
+  if (apiKey) {
+    try {
+      await initializeModel(apiKey);
+    } catch (error) {
+      console.error('Error initializing model with stored API key:', error);
+      showApiKeyDialog.value = true;
+    }
+  } else {
+    showApiKeyDialog.value = true;
+  }
 });
 </script>

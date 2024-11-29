@@ -57,7 +57,7 @@ const items = [
         command: () => navigateTo('/ai/retrieval-agent')
       },
                   {
-        label: 'Mulmti Agent',
+        label: 'Multi Agent',
         icon: 'pi pi-bolt',
         command: () => navigateTo('/ai/multi-agent')
       }

@@ -13,10 +13,10 @@
         <FileUpload
           mode="basic"
           name="demo[]"
-          url="/api/upload"
+          :customUpload="true"
+          @uploader="onFileSelect"
           accept=".txt,.pdf,.doc,.docx"
           :maxFileSize="5000000"
-          @select="onFileSelect"
         />
         <small class="block mt-2 text-gray-500">
           Max file size: 5MB. Supported formats: TXT, PDF, DOC
@@ -64,11 +64,16 @@
         </div>
       </template>
     </Card>
+
+    <ApiKeyDialog
+      v-if="showApiKeyDialog"
+      @close="showApiKeyDialog = false"
+    />
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { MemoryVectorStore } from 'langchain/vectorstores/memory';
@@ -77,13 +82,14 @@ import { ChatOpenAI } from '@langchain/openai';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { RunnableSequence } from '@langchain/core/runnables';
 import { StringOutputParser } from '@langchain/core/output_parsers';
-
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 import FileUpload from 'primevue/fileupload';
 import BackButton from '~/components/BackButton.vue';
 import MessagesArea from './components/MessagesArea.vue';
 import ChatInput from './components/ChatInput.vue';
+import ApiKeyDialog from '~/components/ApiKeyDialog.vue';
+import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
 
 // Types
 interface Message {
@@ -97,173 +103,220 @@ interface UploadedDocument {
   content: string;
 }
 
-export default defineComponent({
-  name: 'RetrievalAgent',
-  components: {
-    Card,
-    Button,
-    FileUpload,
-    BackButton,
-    MessagesArea,
-    ChatInput
-  },
-  setup() {
-    // Component state
-    const messages = ref<Message[]>([]);
-    const userInput = ref('');
-    const isLoading = ref(false);
-    const documents = ref<UploadedDocument[]>([]);
-    let vectorStore: MemoryVectorStore | null = null;
+// Component state
+const messages = ref<Message[]>([]);
+const userInput = ref('');
+const isLoading = ref(false);
+const documents = ref<UploadedDocument[]>([]);
+const showApiKeyDialog = ref(false);
+let vectorStore: MemoryVectorStore | null = null;
 
-    // Initialize OpenAI components
-    const model = new ChatOpenAI({
+// API Key handling
+const { validateApiKey, getStoredApiKey } = useApiKeyValidation();
+
+// Initialize OpenAI components
+let model: ChatOpenAI | null = null;
+let embeddings: OpenAIEmbeddings | null = null;
+
+const initializeModel = async (apiKey: string) => {
+  try {
+    model = new ChatOpenAI({
       modelName: 'gpt-3.5-turbo',
       temperature: 0,
+      openAIApiKey: apiKey,
     });
 
-    const embeddings = new OpenAIEmbeddings();
-
-    // Text splitter for document chunking
-    const textSplitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,
-      chunkOverlap: 200,
+    embeddings = new OpenAIEmbeddings({
+      openAIApiKey: apiKey,
     });
 
-    // Create the retriever chain
-    const retrieverPrompt = PromptTemplate.fromTemplate(`Answer the following question based on the provided context:
+    return true;
+  } catch (error) {
+    console.error('Error initializing model:', error);
+    return false;
+  }
+};
 
-    Context: {context}
+// Text splitter for document chunking
+const textSplitter = new RecursiveCharacterTextSplitter({
+  chunkSize: 1000,
+  chunkOverlap: 200,
+});
 
-    Question: {question}
+// Create the retriever prompt
+const retrieverPrompt = PromptTemplate.fromTemplate(`Answer the following question based on the provided context:
 
-    Think through this step by step:
-    1. Analyze the context provided
-    2. Identify relevant information
-    3. Formulate a comprehensive answer
+Context: {context}
 
-    Answer:`);
+Question: {question}
 
-    // Handle file upload
-    const onFileSelect = async (event: { files: File[] }) => {
-      const { files } = event;
-      if (!files || files.length === 0) return;
+Think through this step by step:
+1. Analyze the context provided
+2. Identify relevant information
+3. Formulate a comprehensive answer
 
-      isLoading.value = true;
-      try {
-        for (const file of files) {
-          const content = await file.text();
-          const document: UploadedDocument = {
-            id: uuidv4(),
-            name: file.name,
-            content: content
-          };
-          documents.value.push(document);
-        }
-        await updateVectorStore();
-        messages.value.push({
-          role: 'system',
-          content: `${files.length} document(s) uploaded successfully.`
-        });
-      } catch (error) {
-        console.error('File upload error:', error);
-        messages.value.push({
-          role: 'error',
-          content: `Error uploading file: ${error instanceof Error ? error.message : 'Unknown error'}`
-        });
-      } finally {
-        isLoading.value = false;
+Answer:`);
+
+// Handle file upload
+const onFileSelect = async (event: { files: File[] }) => {
+  const { files } = event;
+  if (!files || files.length === 0) return;
+
+  // Check for API key
+  const apiKey = getStoredApiKey();
+  if (!apiKey) {
+    showApiKeyDialog.value = true;
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    // Initialize model and embeddings if needed
+    if (!model || !embeddings) {
+      const initialized = await initializeModel(apiKey);
+      if (!initialized) {
+        throw new Error('Failed to initialize model');
       }
-    };
+    }
 
-    // Remove document
-    const removeDocument = async (id: string) => {
-      documents.value = documents.value.filter(doc => doc.id !== id);
-      await updateVectorStore();
-
-      messages.value.push({
-        role: 'system',
-        content: 'Document removed. Vector store updated.',
-      });
-    };
-
-    // Update vector store with current documents
-    const updateVectorStore = async () => {
-      // Combine all documents and split into chunks
-      const allText = documents.value.map(doc => doc.content).join('\n\n');
-      const chunks = await textSplitter.createDocuments([allText]);
-
-      // Create new vector store
-      vectorStore = await MemoryVectorStore.fromDocuments(
-        chunks,
-        embeddings
-      );
-    };
-
-    // Handle sending messages
-    const handleSendMessage = async () => {
-      if (!userInput.value.trim() || isLoading.value || !vectorStore) return;
-
-      const question = userInput.value;
-      messages.value.push({
-        role: 'user',
-        content: question,
-      });
-
-      userInput.value = '';
-      isLoading.value = true;
-
-      try {
-        // Retrieve relevant documents
-        const retriever = vectorStore.asRetriever(4); // Get top 4 relevant chunks
-        const relevantDocs = await retriever.invoke(question);
-
-        // Prepare context
-        const context = relevantDocs.map(doc => doc.pageContent).join('\n\n');
-
-        // Create retrieval chain
-        const chain = RunnableSequence.from([
-          {
-            context: () => context,
-            question: () => question
-          },
-          retrieverPrompt,
-          model,
-          new StringOutputParser()
-        ]);
-
-        // Invoke the chain
-        const response = await chain.invoke({ context, question });
-
-        // Add assistant response to messages
-        messages.value.push({
-          role: 'assistant',
-          content: response
-        });
-      } catch (error) {
-        console.error('Error processing message:', error);
-        messages.value.push({
-          role: 'error',
-          content: `Error processing your request: ${error instanceof Error ? error.message : 'Unknown error'}`
-        });
-      } finally {
-        isLoading.value = false;
-      }
-    };
-
-    // Lifecycle hook for initialization if needed
-    onMounted(() => {
-      // Any initialization logic can go here
+    for (const file of files) {
+      const content = await file.text();
+      const document: UploadedDocument = {
+        id: uuidv4(),
+        name: file.name,
+        content: content
+      };
+      documents.value.push(document);
+    }
+    await updateVectorStore();
+    messages.value.push({
+      role: 'system',
+      content: `${files.length} document(s) uploaded successfully.`
     });
+  } catch (error) {
+    console.error('File upload error:', error);
+    messages.value.push({
+      role: 'error',
+      content: `Error uploading file: ${error instanceof Error ? error.message : 'Unknown error'}`
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
 
-    return {
-      messages,
-      userInput,
-      isLoading,
-      documents,
-      onFileSelect,
-      removeDocument,
-      handleSendMessage
-    };
+// Remove document
+const removeDocument = async (id: string) => {
+  documents.value = documents.value.filter(doc => doc.id !== id);
+  if (documents.value.length > 0) {
+    await updateVectorStore();
+    messages.value.push({
+      role: 'system',
+      content: 'Document removed. Vector store updated.',
+    });
+  } else {
+    vectorStore = null;
+    messages.value.push({
+      role: 'system',
+      content: 'All documents removed.',
+    });
+  }
+};
+
+// Update vector store with current documents
+const updateVectorStore = async () => {
+  if (!embeddings) {
+    throw new Error('Embeddings not initialized');
+  }
+
+  // Combine all documents and split into chunks
+  const allText = documents.value.map(doc => doc.content).join('\n\n');
+  const chunks = await textSplitter.createDocuments([allText]);
+
+  // Create new vector store
+  vectorStore = await MemoryVectorStore.fromDocuments(
+    chunks,
+    embeddings
+  );
+};
+
+// Handle sending messages
+const handleSendMessage = async () => {
+  if (!userInput.value.trim() || isLoading.value || !vectorStore) return;
+
+  // Check for API key
+  const apiKey = getStoredApiKey();
+  if (!apiKey) {
+    showApiKeyDialog.value = true;
+    return;
+  }
+
+  const question = userInput.value;
+  messages.value.push({
+    role: 'user',
+    content: question,
+  });
+
+  userInput.value = '';
+  isLoading.value = true;
+
+  try {
+    // Ensure model is initialized
+    if (!model) {
+      const initialized = await initializeModel(apiKey);
+      if (!initialized) {
+        throw new Error('Failed to initialize model');
+      }
+    }
+
+    // Retrieve relevant documents
+    const retriever = vectorStore.asRetriever(4); // Get top 4 relevant chunks
+    const relevantDocs = await retriever.invoke(question);
+
+    // Prepare context
+    const context = relevantDocs.map(doc => doc.pageContent).join('\n\n');
+
+    // Create retrieval chain
+    const chain = RunnableSequence.from([
+      {
+        context: () => context,
+        question: () => question
+      },
+      retrieverPrompt,
+      model!,
+      new StringOutputParser()
+    ]);
+
+    // Invoke the chain
+    const response = await chain.invoke({});
+
+    // Add assistant response to messages
+    messages.value.push({
+      role: 'assistant',
+      content: response
+    });
+  } catch (error) {
+    console.error('Error processing message:', error);
+    messages.value.push({
+      role: 'error',
+      content: `Error processing your request: ${error instanceof Error ? error.message : 'Unknown error'}`
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Initialize on mount
+onMounted(async () => {
+  const apiKey = getStoredApiKey();
+  if (apiKey) {
+    try {
+      await initializeModel(apiKey);
+    } catch (error) {
+      console.error('Error initializing model with stored API key:', error);
+      showApiKeyDialog.value = true;
+    }
+  } else {
+    showApiKeyDialog.value = true;
   }
 });
 </script>

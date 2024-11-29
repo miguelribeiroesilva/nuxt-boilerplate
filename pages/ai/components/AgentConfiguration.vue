@@ -16,7 +16,7 @@
 
         <div class="form-group">
           <label class="text-sm mb-1 block">
-            Default Temperature: {{ localConfig.temperature.toFixed(1) }}
+            Default Temperature: {{ localConfig?.temperature?.toFixed(1) || '0.0' }}
           </label>
           <Slider
             v-model="localConfig.temperature"
@@ -84,9 +84,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import type { AgentConfig, AgentRole } from '@/composables/useAgentConfig';
-import { useAgentConfig } from '@/composables/useAgentConfig';
+import { ref, watch, computed } from 'vue';
+import type { AgentConfig, AgentRole } from '~/composables/useAgentConfig';
+import { useAgentConfig } from '~/composables/useAgentConfig';
+import Dropdown from 'primevue/dropdown';
+import Slider from 'primevue/slider';
+import InputNumber from 'primevue/inputnumber';
+import Button from 'primevue/button';
 import AgentRoleCard from './AgentRoleCard.vue';
 
 const modelOptions = [
@@ -104,10 +108,21 @@ const emit = defineEmits<{
 }>();
 
 const { updateRole: updateAgentRole, addRole, removeRole, resetConfig } = useAgentConfig();
-const localConfig = ref<AgentConfig>({ ...props.modelValue });
 
+// Initialize local config with default values if modelValue is undefined
+const localConfig = ref<AgentConfig>({
+  roles: [],
+  maxTokens: 2000,
+  modelName: 'gpt-3.5-turbo',
+  temperature: 0.7,
+  ...props.modelValue
+});
+
+// Watch for external changes
 watch(() => props.modelValue, (newValue) => {
-  localConfig.value = { ...newValue };
+  if (newValue) {
+    localConfig.value = { ...newValue };
+  }
 }, { deep: true });
 
 function addNewRole() {
@@ -123,7 +138,7 @@ function addNewRole() {
 }
 
 function applyConfig() {
-  emit('update:modelValue', localConfig.value);
+  emit('update:modelValue', { ...localConfig.value });
 }
 
 function handleRoleUpdate(index: number, updates: Partial<AgentRole>) {
@@ -142,12 +157,14 @@ function handleRoleRemove(index: number) {
 }
 
 function handleConfigUpdate() {
-  emit('update:modelValue', localConfig.value);
+  emit('update:modelValue', { ...localConfig.value });
 }
 
 function handleReset() {
-  localConfig.value = { ...props.modelValue };
-  emit('update:modelValue', localConfig.value);
+  if (props.modelValue) {
+    localConfig.value = { ...props.modelValue };
+    emit('update:modelValue', localConfig.value);
+  }
 }
 </script>
 

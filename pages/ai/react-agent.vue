@@ -34,11 +34,8 @@
     </Card>
 
     <ApiKeyDialog
-      v-model="showApiKeyDialog"
-      :error="apiKeyError"
-      :loading="isLoading"
-      provider="openai"
-      @submit="handleApiKeySubmit"
+      v-if="showApiKeyDialog"
+      @close="showApiKeyDialog = false"
     />
   </div>
 </template>
@@ -48,12 +45,15 @@ import { ref, onMounted } from 'vue';
 import { ChatOpenAI } from '@langchain/openai';
 import { RunnableSequence } from '@langchain/core/runnables';
 import { StringOutputParser } from '@langchain/core/output_parsers';
+import { PromptTemplate } from '@langchain/core/prompts';
+import { StructuredOutputParser } from '@langchain/core/output_parsers';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 import BackButton from '~/components/BackButton.vue';
 import MessagesArea from './components/MessagesArea.vue';
 import ChatInput from './components/ChatInput.vue';
 import ApiKeyDialog from '~/components/ApiKeyDialog.vue';
+import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
 
 // Types
 interface Message {
@@ -78,30 +78,8 @@ const apiKeyError = ref<string | null>(null);
 const { validateApiKey, getStoredApiKey } = useApiKeyValidation();
 
 // Initialize OpenAI model
-let model: ChatOpenAI;
-
-const initializeModel = async (apiKey: string) => {
-  model = new ChatOpenAI({
-    modelName: 'gpt-3.5-turbo',
-    temperature: 0,
-    openAIApiKey: apiKey,
-  });
-};
-
-// API key submission handler
-const handleApiKeySubmit = async (apiKey: string) => {
-  try {
-    const isValid = await validateApiKey(apiKey);
-    if (isValid) {
-      await initializeModel(apiKey);
-      showApiKeyDialog.value = false;
-      apiKeyError.value = null;
-    }
-  } catch (error) {
-    apiKeyError.value = 'Failed to initialize the model with the provided API key.';
-    throw error;
-  }
-};
+let model: ChatOpenAI | null = null;
+let chain: RunnableSequence | null = null;
 
 // Create output parser for structured thoughts and actions
 const outputParser = StructuredOutputParser.fromNamesAndDescriptions({
@@ -124,13 +102,29 @@ actionInput: Input for the action
 Response:
 `);
 
-// Create the ReAct chain
-const chain = RunnableSequence.from([
-  promptTemplate,
-  model,
-  new StringOutputParser(),
-  outputParser,
-]);
+const initializeModel = async (apiKey: string) => {
+  try {
+    // Initialize the model
+    model = new ChatOpenAI({
+      modelName: 'gpt-3.5-turbo',
+      temperature: 0,
+      openAIApiKey: apiKey,
+    });
+
+    // Create the chain only after model is initialized
+    chain = RunnableSequence.from([
+      promptTemplate,
+      model,
+      new StringOutputParser(),
+      outputParser,
+    ]);
+
+    return true;
+  } catch (error) {
+    console.error('Error initializing model:', error);
+    return false;
+  }
+};
 
 // Handle sending messages
 async function handleSendMessage() {
@@ -153,13 +147,16 @@ async function handleSendMessage() {
   isLoading.value = true;
 
   try {
-    // Ensure model is initialized
-    if (!model) {
-      await initializeModel(apiKey);
+    // Ensure model and chain are initialized
+    if (!model || !chain) {
+      const initialized = await initializeModel(apiKey);
+      if (!initialized) {
+        throw new Error('Failed to initialize model');
+      }
     }
 
     // Call the ReAct chain
-    const result = await chain.invoke({
+    const result = await chain!.invoke({
       question,
     });
 
