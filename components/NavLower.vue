@@ -98,11 +98,7 @@ const items = [
         label: 'PrimeVue',
         icon: 'pi pi-prime',
         items: [
-          {
-            label: 'Tailwind',
-            icon: 'pi pi-prime',
-            command: () => navigateTo('/_tailwind/'),
-          },
+
           {
             label: 'Upload',
             icon: 'pi pi-prime',
