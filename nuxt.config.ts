@@ -212,6 +212,7 @@ export default defineNuxtConfig({
     },
     components: {
       include: [
+        'Badge',
         'Button',
         'Calendar',
         'Checkbox',

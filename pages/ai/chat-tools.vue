@@ -8,7 +8,7 @@
     </div>
   </header>
 
-  <ChatInterface 
+  <ChatInterface
     v-model="newMessage"
     :messages="messages"
     :is-loading="isLoading"

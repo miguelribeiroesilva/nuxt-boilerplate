@@ -3,12 +3,24 @@
     <Menubar
       :model="items"
       class="bg-transparent border-none"
+    >
+        <template #item="{ item, props, hasSubmenu, root }">
+        <a v-ripple class="flex align-items-center" v-bind="props.action">
+            <span :class="item.icon" />
+            <span class="ml-2">{{ item.label }}</span>
+            <Badge v-if="item.badge" :class="{ 'ml-auto': !root, 'ml-2': root }" :value="item.badge" />
+            <span v-if="item.shortcut" class="ml-auto border-1 surface-border border-round surface-100 text-xs p-1">{{ item.shortcut }}</span>
+            <i v-if="hasSubmenu" :class="['pi pi-angle-down', { 'pi-angle-down ml-2': root, 'pi-angle-right ml-auto': !root }]"></i>
+        </a>
+    </template>
     </Menubar>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import type { MenuItem } from 'primevue/menuitem';
 
 const router = useRouter();
 
@@ -16,7 +28,7 @@ const navigateTo = (route: string) => {
   router.push(route);
 };
 
-const items = [
+const items = ref<MenuItem[]>([
   {
     label: 'Home',
     command: () => navigateTo('/'),
@@ -25,6 +37,7 @@ const items = [
   {
     label: 'AI',
     icon: 'pi pi-brain',
+    badge: 'New',
     items: [
       {
         label: 'Chat',
@@ -64,7 +77,8 @@ const items = [
       {
         label: 'Agent Collaboration',
         icon: 'pi pi-cog',
-        command: () => navigateTo('/ai/agent-collaboration')}
+        command: () => navigateTo('/ai/agent-collaboration')
+      }
     ]
   },
   {
@@ -140,8 +154,7 @@ const items = [
     command: () => navigateTo('/about'),
     icon: 'pi pi-info-circle'
   },
-
-];
+]);
 </script>
 
 <style scoped>
