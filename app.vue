@@ -17,7 +17,7 @@ useHead({
     <div>
       <CookieControl />
 
-      <main class="container mx-auto py-2">
+      <main class="container mx-auto">
         <NuxtPage />
       </main>
     </div>

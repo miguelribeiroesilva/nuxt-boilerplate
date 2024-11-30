@@ -14,7 +14,7 @@
   },
   "files.trimTrailingWhitespace": true,
   "npm.packageManager": "pnpm",
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "Vue.volar",
   "css.lint.unknownAtRules": "ignore",
   "tailwindCSS.includeLanguages": {
     "html": "html",
@@ -26,5 +26,8 @@
   "i18n-ally.localesPaths": ["locales"],
   "i18n-ally.displayLanguage": "en-US",
   "i18n-ally.sourceLanguage": "en-US",
-  "i18n-ally.keystyle": "nested"
+  "i18n-ally.keystyle": "nested",
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true
 }

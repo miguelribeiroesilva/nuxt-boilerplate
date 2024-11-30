@@ -1,36 +1,39 @@
 <template>
-  <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
-    <div class="flex items-center gap-2 w-full">
+  <header>
+    <div class="flex items-center gap-2 w-full px-0">
       <BackButton />
-      <Button label="Chat with Tools" severity="info" disabled class="flex-1" />
-      <HelpDialog title="Chat with Tools" docPath="/docs/chat-tools" />
-
+      <Button label="AI Tools" severity="info" disabled class="flex-1" />
+      <HelpDialog title="AI Tools" docPath="/docs/chat-tools" />
       <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
-
     </div>
+  </header>
 
-    <div class="flex-1 mt-4 overflow-hidden">
-      <MessagesArea :messages="messages" :is-loading="isLoading" :hide-scrollbar="true" />
-    </div>
+  <ChatInterface 
+    v-model="newMessage"
+    :messages="messages"
+    :is-loading="isLoading"
+    @send="sendMessage"
+  />
 
-    <div class="flex-none p-1 border-t dark:border-gray-700">
-      <ChatInput v-model="userInput" :is-loading="isLoading" @send-message="sendMessage" />
-    </div>
-
-    <ModelConfigSidebar
-      v-model="showSidebar"
-      :model="model"
-      :config="modelConfig"
-      :available-models="availableModels"
-      @update:config="updateConfig"
-      position="right"
-    />
-  </div>
+  <ModelConfigSidebar
+    v-model="showSidebar"
+    :model="model"
+    :config="modelConfig"
+    :available-models="availableModels"
+    @update:config="updateConfig"
+    position="right"
+  />
 </template>
 
 <script setup lang="ts">
 import { HumanMessage } from '@langchain/core/messages';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import ChatInterface from './components/ChatInterface.vue';
+import Button from 'primevue/button';
+import BackButton from '~/components/BackButton.vue';
+import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
+import HelpDialog from '~/components/HelpDialog.vue';
+import ModelConfigSidebar from './components/ModelConfigSidebar.vue';
 
 // Get AI model configuration
 const {
@@ -44,7 +47,7 @@ const {
 
 // Component state
 const messages = ref<any[]>([]);
-const userInput = ref('');
+const newMessage = ref('');
 const isLoading = ref(false);
 const apiKey = ref('');
 const showApiKeyDialog = ref(false);
@@ -63,10 +66,10 @@ const initializeChat = async () => {
 };
 
 const sendMessage = async () => {
-  if (!userInput.value.trim() || isLoading.value || !model.value || !firestore) return;
+  if (!newMessage.value.trim() || isLoading.value || !model.value || !firestore) return;
 
-  const messageContent = userInput.value.trim();
-  userInput.value = '';
+  const messageContent = newMessage.value.trim();
+  newMessage.value = '';
 
   try {
     isLoading.value = true;

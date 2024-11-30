@@ -1,96 +1,86 @@
 <template>
-  <div>
-    <Card class="component-title">
-      <template #content>
+  <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
+    <header>
+      <div class="flex items-center gap-2 w-full px-0">
         <BackButton />
-        <Button label="Retrieval Agent Demo" severity="info" disabled class="flex-1" />
-      </template>
-    </Card>
-
-    <Card class="mb-4">
-      <template #title>Document Upload</template>
-      <template #content>
-        <FileUpload
-          mode="basic"
-          name="demo[]"
-          :customUpload="true"
-          @uploader="onFileSelect"
-          accept=".txt,.pdf,.doc,.docx"
-          :maxFileSize="5000000"
-        />
-        <small class="block mt-2 text-gray-500">
-          Max file size: 5MB. Supported formats: TXT, PDF, DOC
-        </small>
-        <div v-if="documents.length > 0" class="mt-4">
-          <h3 class="text-lg font-semibold mb-2">Uploaded Documents</h3>
-          <ul class="list-disc pl-5">
-            <li v-for="doc in documents" :key="doc.id" class="text-sm">
-              {{ doc.name }}
-              <Button
-                icon="pi pi-times"
-                text
-                severity="danger"
-                @click="removeDocument(doc.id)"
-                class="ml-2"
-              />
-            </li>
-          </ul>
-        </div>
-      </template>
-    </Card>
+        <Button label="Retrieval Agent" severity="info" disabled class="flex-1" />
+        <HelpDialog title="Retrieval Agent" docPath="/docs/retrieval-agent" />
+        <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
+      </div>
+    </header>
 
     <Card>
-      <template #title>Retrieval Agent Interaction</template>
+      <template #title>Document Management</template>
       <template #content>
-        <div class="flex flex-col h-[600px]">
-          <MessagesArea
-            :messages="messages"
-            :is-loading="isLoading"
-            :hide-scrollbar="true"
-            class="flex-1"
-          />
-          <div class="flex-none p-1 border-t dark:border-gray-700">
-            <ChatInput
-              v-model="userInput"
-              :is-loading="isLoading"
-              @send-message="handleSendMessage"
-              :placeholder="documents.length ? 'Ask about the uploaded documents...' : 'Please upload documents first'"
-              :disabled="documents.length === 0"
-            />
+        <div class="flex flex-col gap-4">
+          <FileUpload
+            :multiple="true"
+            accept=".txt,.pdf,.doc,.docx"
+            :maxFileSize="1000000"
+            @select="onFileSelect"
+            :auto="true"
+          >
+            <template #empty>
+              <p>Drag and drop files here or click to upload.</p>
+            </template>
+          </FileUpload>
+          <ul v-if="documents.length > 0" class="list-none p-0">
+            <li v-for="doc in documents" :key="doc.id" class="flex items-center justify-between py-2">
+              <span>{{ doc.name }}</span>
+              <Button icon="pi pi-trash" text severity="danger" @click="removeDocument(doc.id)" />
+            </li>
+          </ul>
+          <div v-else class="text-gray-500">
+            No documents uploaded yet.
           </div>
         </div>
       </template>
     </Card>
 
-    <ApiKeyDialog v-if="showApiKeyDialog" @close="showApiKeyDialog = false" />
+    <ChatInterface 
+      v-model="newMessage"
+      :messages="messages"
+      :is-loading="isLoading"
+      @send="sendMessage"
+    />
+
+    <ApiKeyDialog 
+      v-if="showApiKeyDialog"
+      v-model="showApiKeyDialog"
+      v-model:apiKey="apiKey"
+      :error="error"
+      provider="openai"
+      @close="showApiKeyDialog = false"
+      @submit="handleApiKeySubmit"
+    />
+
+    <ModelConfigSidebar
+      :modelValue="showSidebar"
+      @update:modelValue="showSidebar = $event"
+      :model="model"
+      :config="modelConfig"
+      :available-models="availableModels"
+      @update:config="updateConfig"
+      position="right"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { v4 as uuidv4 } from 'uuid';
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { MemoryVectorStore } from 'langchain/vectorstores/memory';
 import { OpenAIEmbeddings } from '@langchain/openai';
-import { ChatOpenAI } from '@langchain/openai';
-import { PromptTemplate } from '@langchain/core/prompts';
-import { RunnableSequence } from '@langchain/core/runnables';
-import { StringOutputParser } from '@langchain/core/output_parsers';
+import { Document } from '@langchain/core/documents';
+import type { Message } from '~/composables/useAgentConfig';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 import FileUpload from 'primevue/fileupload';
 import BackButton from '~/components/BackButton.vue';
-import MessagesArea from './components/MessagesArea.vue';
-import ChatInput from './components/ChatInput.vue';
+import ChatInterface from './components/ChatInterface.vue';
 import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
+import ModelConfigSidebar from './components/ModelConfigSidebar.vue';
 import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
-import '@/assets/css/component-title.css';
-
-// Types
-interface Message {
-  role: 'user' | 'assistant' | 'error' | 'system';
-  content: string;
-}
+import { useAIModel } from '~/composables/useAIModel';
 
 interface UploadedDocument {
   id: string;
@@ -100,143 +90,77 @@ interface UploadedDocument {
 
 // Component state
 const messages = ref<Message[]>([]);
-const userInput = ref('');
+const newMessage = ref('');
 const isLoading = ref(false);
 const documents = ref<UploadedDocument[]>([]);
 const showApiKeyDialog = ref(false);
+const showSidebar = ref(false);
+const modelConfig = ref({});
+const model = ref(null);
+const availableModels = ref([]);
+const apiKey = ref('');
+const error = ref('');
 let vectorStore: MemoryVectorStore | null = null;
 
 // API Key handling
 const { validateApiKey, getStoredApiKey } = useApiKeyValidation();
+const { config, initializeModel, updateConfig } = useAIModel();
 
-// Initialize OpenAI components
-let model: ChatOpenAI | null = null;
-let embeddings: OpenAIEmbeddings | null = null;
-
-const initializeModel = async (apiKey: string) => {
-  try {
-    model = new ChatOpenAI({
-      modelName: 'gpt-3.5-turbo',
-      temperature: 0,
-      openAIApiKey: apiKey,
-    });
-
-    embeddings = new OpenAIEmbeddings({
-      openAIApiKey: apiKey,
-    });
-
-    return true;
-  } catch (error) {
-    console.error('Error initializing model:', error);
-    return false;
-  }
-};
-
-// Text splitter for document chunking
-const textSplitter = new RecursiveCharacterTextSplitter({
-  chunkSize: 1000,
-  chunkOverlap: 200,
-});
-
-// Create the retriever prompt
-const retrieverPrompt = PromptTemplate.fromTemplate(`Answer the following question based on the provided context:
-
-Context: {context}
-
-Question: {question}
-
-Think through this step by step:
-1. Analyze the context provided
-2. Identify relevant information
-3. Formulate a comprehensive answer
-
-Answer:`);
-
-// Handle file upload
-const onFileSelect = async (event: { files: File[] }) => {
-  const { files } = event;
+// File handling
+const onFileSelect = async (event: any) => {
+  const files = event.files;
   if (!files || files.length === 0) return;
 
-  // Check for API key
-  const apiKey = getStoredApiKey();
-  if (!apiKey) {
-    showApiKeyDialog.value = true;
-    return;
+  for (const file of files) {
+    try {
+      const content = await file.text();
+      documents.value.push({
+        id: Math.random().toString(36).substr(2, 9),
+        name: file.name,
+        content
+      });
+    } catch (e) {
+      console.error('Error reading file:', e);
+    }
   }
 
-  isLoading.value = true;
+  // Initialize vector store with new documents
+  await initializeVectorStore();
+};
+
+const removeDocument = (id: string) => {
+  documents.value = documents.value.filter(doc => doc.id !== id);
+  // Reinitialize vector store with remaining documents
+  initializeVectorStore();
+};
+
+// Initialize vector store
+const initializeVectorStore = async () => {
   try {
-    // Initialize model and embeddings if needed
-    if (!model || !embeddings) {
-      const initialized = await initializeModel(apiKey);
-      if (!initialized) {
-        throw new Error('Failed to initialize model');
-      }
+    const apiKey = getStoredApiKey();
+    if (!apiKey) {
+      showApiKeyDialog.value = true;
+      return;
     }
 
-    for (const file of files) {
-      const content = await file.text();
-      const document: UploadedDocument = {
-        id: uuidv4(),
-        name: file.name,
-        content: content
-      };
-      documents.value.push(document);
-    }
-    await updateVectorStore();
-    messages.value.push({
-      role: 'system',
-      content: `${files.length} document(s) uploaded successfully.`
-    });
-  } catch (error) {
-    console.error('File upload error:', error);
+    const embeddings = new OpenAIEmbeddings({ openAIApiKey: apiKey });
+    const docs = documents.value.map(
+      doc => new Document({ pageContent: doc.content, metadata: { name: doc.name } })
+    );
+
+    vectorStore = await MemoryVectorStore.fromDocuments(docs, embeddings);
+  } catch (e) {
+    console.error('Error initializing vector store:', e);
     messages.value.push({
       role: 'error',
-      content: `Error uploading file: ${error instanceof Error ? error.message : 'Unknown error'}`
-    });
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// Remove document
-const removeDocument = async (id: string) => {
-  documents.value = documents.value.filter(doc => doc.id !== id);
-  if (documents.value.length > 0) {
-    await updateVectorStore();
-    messages.value.push({
-      role: 'system',
-      content: 'Document removed. Vector store updated.',
-    });
-  } else {
-    vectorStore = null;
-    messages.value.push({
-      role: 'system',
-      content: 'All documents removed.',
+      content: 'Failed to initialize document processing. Please check your API key and try again.'
     });
   }
-};
-
-// Update vector store with current documents
-const updateVectorStore = async () => {
-  if (!embeddings) {
-    throw new Error('Embeddings not initialized');
-  }
-
-  // Combine all documents and split into chunks
-  const allText = documents.value.map(doc => doc.content).join('\n\n');
-  const chunks = await textSplitter.createDocuments([allText]);
-
-  // Create new vector store
-  vectorStore = await MemoryVectorStore.fromDocuments(
-    chunks,
-    embeddings
-  );
 };
 
 // Handle sending messages
-const handleSendMessage = async () => {
-  if (!userInput.value.trim() || isLoading.value || !vectorStore) return;
+const sendMessage = async () => {
+  if (!newMessage.value.trim() || isLoading.value || !vectorStore) return;
 
   // Check for API key
   const apiKey = getStoredApiKey();
@@ -245,69 +169,68 @@ const handleSendMessage = async () => {
     return;
   }
 
-  const question = userInput.value;
+  const question = newMessage.value;
   messages.value.push({
-    role: 'user',
-    content: question,
+    role: 'human',
+    content: question
   });
 
-  userInput.value = '';
+  newMessage.value = '';
   isLoading.value = true;
 
   try {
-    // Ensure model is initialized
-    if (!model) {
-      const initialized = await initializeModel(apiKey);
-      if (!initialized) {
-        throw new Error('Failed to initialize model');
-      }
-    }
+    // Get relevant documents
+    const relevantDocs = await vectorStore.similaritySearch(question, 3);
 
-    // Retrieve relevant documents
-    const retriever = vectorStore.asRetriever(4); // Get top 4 relevant chunks
-    const relevantDocs = await retriever.invoke(question);
+    // Format context from relevant documents
+    const context = relevantDocs
+      .map(doc => `Content from ${doc.metadata.name}:\n${doc.pageContent}`)
+      .join('\n\n');
 
-    // Prepare context
-    const context = relevantDocs.map(doc => doc.pageContent).join('\n\n');
-
-    // Create retrieval chain
-    const chain = RunnableSequence.from([
-      {
-        context: () => context,
-        question: () => question
-      },
-      retrieverPrompt,
-      model!,
-      new StringOutputParser()
+    // Get AI response using context
+    const response = await model.value.invoke([
+      new SystemMessage(`You are a helpful assistant. Use the following context to answer questions:\n\n${context}`),
+      new HumanMessage(question)
     ]);
 
-    // Invoke the chain
-    const response = await chain.invoke({});
-
-    // Add assistant response to messages
     messages.value.push({
       role: 'assistant',
-      content: response
+      content: response.content
     });
-  } catch (error) {
-    console.error('Error processing message:', error);
+  } catch (e) {
+    console.error('Error:', e);
     messages.value.push({
       role: 'error',
-      content: `Error processing your request: ${error instanceof Error ? error.message : 'Unknown error'}`
+      content: 'Failed to process your request. Please try again.'
     });
   } finally {
     isLoading.value = false;
+  }
+};
+
+const handleApiKeySubmit = async (apiKey: string) => {
+  try {
+    const isValid = await validateApiKey(apiKey);
+    if (isValid) {
+      await initializeModel(apiKey);
+      showApiKeyDialog.value = false;
+    } else {
+      error.value = 'Invalid API key';
+    }
+  } catch (e) {
+    console.error('Error:', e);
+    error.value = 'Failed to validate API key';
   }
 };
 
 // Initialize on mount
 onMounted(async () => {
-  const apiKey = getStoredApiKey();
-  if (apiKey) {
-    try {
-      await initializeModel(apiKey);
-    } catch (error) {
-      console.error('Error initializing model with stored API key:', error);
+  const savedKey = getStoredApiKey();
+  if (savedKey) {
+    const isValid = await validateApiKey(savedKey);
+    if (isValid) {
+      await initializeModel(savedKey);
+    } else {
       showApiKeyDialog.value = true;
     }
   } else {

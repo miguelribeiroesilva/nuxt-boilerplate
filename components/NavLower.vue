@@ -62,7 +62,7 @@ const items = [
         command: () => navigateTo('/ai/multi-agent')
       },
       {
-        label: 'Agent Collaboration Demo',
+        label: 'Agent Collaboration',
         icon: 'pi pi-cog',
         command: () => navigateTo('/ai/agent-collaboration')}
     ]

@@ -133,12 +133,12 @@ watch(() => props.agentConfig, (newConfig) => {
   }
 }, { deep: true });
 
-const updateConfig = () => {
+const updateConfig = (): void => {
   emit('update:config', { ...localConfig.value });
   emit('update:model', props.model);
 };
 
-const handleConfigUpdate = (newConfig: any) => {
+const handleConfigUpdate = (newConfig: any): void => {
   emit('update:agentConfig', newConfig);
 };
 </script>

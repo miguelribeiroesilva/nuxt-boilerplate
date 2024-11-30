@@ -1,75 +1,45 @@
 <template>
-  <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
-    <div class="flex-none p-1 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-      <div class="flex items-center gap-2 w-full">
-        <BackButton />
-        <Button label="AI Chat" severity="info" disabled class="flex-1" />
-        <HelpDialog
-          title="AI Chat"
-          docPath="/docs/chat"
-        />
-        <Button
-          icon="pi pi-cog"
-          @click="showSidebar = true"
-          text
-          rounded
-          aria-label="Settings"
-          class="p-1"
-        />
-      </div>
+  <header>
+    <div class="flex items-center gap-2 w-full px-0">
+      <BackButton />
+      <Button label="AI Chat" severity="info" disabled class="flex-1" />
+      <HelpDialog title="AI Chat" docPath="/docs/chat" />
+      <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
     </div>
+  </header>
 
-    <div class="flex-1 overflow-y-auto flex flex-col">
-      <div class="flex-1 p-4">
-        <MessagesArea
-          :messages="messages"
-          :is-loading="isLoading"
-          :hide-scrollbar="true"
-        />
-      </div>
+  <ChatInterface 
+    v-model="newMessage"
+    :messages="messages"
+    :is-loading="isLoading"
+    @send="sendMessage"
+  />
 
-      <div class="p-4 bg-white dark:bg-gray-800 border-t dark:border-gray-700">
-        <div class="flex gap-2 max-w-3xl mx-auto">
-          <InputText
-            v-model="newMessage"
-            placeholder="Type a message..."
-            class="flex-1"
-            :disabled="isLoading"
-            @keyup.enter="sendMessage"
-          />
-          <Button
-            icon="pi pi-send"
-            :loading="isLoading"
-            :disabled="!newMessage.trim()"
-            @click="sendMessage"
-          />
-        </div>
-      </div>
-    </div>
+  <ApiKeyDialog 
+    v-if="showApiKeyDialog"
+    v-model="showApiKeyDialog"
+    v-model:apiKey="apiKey"
+    :error="error"
+    provider="openai"
+    @close="showApiKeyDialog = false"
+    @submit="handleApiKeySubmit"
+  />
 
-    <ApiKeyDialog
-      v-model="showApiKeyDialog"
-      v-model:apiKey="apiKey"
-      :error="error"
-      provider="openai"
-      @submit="handleApiKeySubmit"
-    />
+  <ModelConfigSidebar v-model="showSidebar" :model="model" :config="modelConfig" :available-models="availableModels"
+    @update:config="updateConfig" position="right" />
 
-    <ModelConfigSidebar
-      v-model="showSidebar"
-      :model="model"
-      :config="modelConfig"
-      :available-models="availableModels"
-      @update:config="updateConfig"
-      position="right"
-    />
-  </div>
 </template>
 
 <script setup lang="ts">
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp } from 'firebase/firestore';
+import ChatInterface from './components/ChatInterface.vue';
+import Button from 'primevue/button';
+import BackButton from '~/components/BackButton.vue';
+import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
+import HelpDialog from '~/components/HelpDialog.vue';
+import ModelConfigSidebar from '~/pages/ai/components/ModelConfigSidebar.vue';
 
 interface Message {
   role: 'user' | 'error' | 'human' | 'ai' | 'assistant';
@@ -143,8 +113,8 @@ const sendMessage = async () => {
     // Add AI response locally
     messages.value.push({
       role: 'ai',
-      content: Array.isArray(response.content) 
-        ? (response.content[0] as { text?: string }).text || '' 
+      content: Array.isArray(response.content)
+        ? (response.content[0] as { text?: string }).text || ''
         : String(response.content),
       timestamp: new Date(),
     });
@@ -158,8 +128,8 @@ const sendMessage = async () => {
       });
 
       await addDoc(collection(firestore, 'messages'), {
-        content: Array.isArray(response.content) 
-          ? (response.content[0] as { text?: string }).text || '' 
+        content: Array.isArray(response.content)
+          ? (response.content[0] as { text?: string }).text || ''
           : String(response.content),
         role: 'ai',
         timestamp: serverTimestamp(),
@@ -207,8 +177,8 @@ onMounted(async () => {
         return {
           content: data.content,
           role: data.role,
-          timestamp: data.timestamp instanceof Timestamp 
-            ? data.timestamp.toDate() 
+          timestamp: data.timestamp instanceof Timestamp
+            ? data.timestamp.toDate()
             : new Date(), // Default to current date if timestamp is invalid
         } as Message;
       });

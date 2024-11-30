@@ -3,7 +3,7 @@
     <Card class="first-card">
       <template #content>
         <BackButton />
-        <Button label="Firebase Storage Demo" severity="info" disabled class="flex-1" />
+        <Button label="Firebase Storage" severity="info" disabled class="flex-1" />
       </template>
     </Card>
     <Card>

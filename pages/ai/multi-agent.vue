@@ -1,48 +1,30 @@
 <template>
-  <div>
-    <div class="flex-none p-1 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-      <div class="flex items-center gap-2 w-full">
+  <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
+    <header>
+      <div class="flex items-center gap-2 w-full px-0">
         <BackButton />
-        <Button label="Multi-Agent Demo" severity="info" disabled class="flex-1" />
-        <HelpDialog
-          title="Multi-Agent System"
-          docPath="/docs/multi-agent"
-        />
-        <Button
-          icon="pi pi-cog"
-          @click="showSidebar = true"
-          text
-          rounded
-          aria-label="Settings"
-          class="p-1"
-        />
+        <Button label="Multi-Agent" severity="info" disabled class="flex-1" />
+        <HelpDialog title="Multi-Agent" docPath="/docs/multi-agent" />
+        <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
       </div>
-    </div>
+    </header>
 
-    <div class="flex-1 overflow-y-auto flex flex-col">
-      <Card>
-        <template #title>Agent Interaction</template>
-        <template #content>
-          <div class="flex flex-col h-[600px]">
-            <MessagesArea
-              :messages="messages"
-              :is-loading="isLoading"
-              :hide-scrollbar="true"
-              class="flex-1"
-            />
-            <div class="flex-none p-1 border-t dark:border-gray-700">
-              <ChatInput
-                v-model="userInput"
-                :is-loading="isLoading"
-                @send-message="handleSendMessage"
-                :placeholder="'Describe your task...'"
-              />
-            </div>
-          </div>
-        </template>
-      </Card>
-      <ApiKeyDialog v-if="showApiKeyDialog" @close="showApiKeyDialog = false" />
-    </div>
+    <ChatInterface 
+      v-model="newMessage"
+      :messages="messages"
+      :is-loading="isLoading"
+      @send="sendMessage"
+    />
+
+    <ApiKeyDialog 
+      v-if="showApiKeyDialog"
+      v-model="showApiKeyDialog"
+      v-model:apiKey="apiKey"
+      :error="error"
+      provider="openai"
+      @close="showApiKeyDialog = false"
+      @submit="handleApiKeySubmit"
+    />
 
     <ModelConfigSidebar
       v-model="showSidebar"
@@ -64,25 +46,29 @@ import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { PromptTemplate } from '@langchain/core/prompts';
 import Card from 'primevue/card';
+import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import BackButton from '~/components/BackButton.vue';
 import MessagesArea from './components/MessagesArea.vue';
-import ChatInput from './components/ChatInput.vue';
 import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
 import HelpDialog from '~/components/HelpDialog.vue';
 import ModelConfigSidebar from '~/pages/ai/components/ModelConfigSidebar.vue';
+import ChatInterface from '~/pages/ai/components/ChatInterface.vue';
 
 import '@/assets/css/component-title.css';
 
 import { useAgentConfig } from '~/composables/useAgentConfig';
 import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
+import { useAIModel } from '~/composables/useAIModel';
 
 // Component state
 const messages = ref([]);
-const userInput = ref('');
+const newMessage = ref('');
 const isLoading = ref(false);
 const showApiKeyDialog = ref(false);
 const showSidebar = ref(false);
+const apiKey = ref('');
+const error = ref('');
 
 // Initialize agent configuration
 const { config: agentConfig, getActiveRoles } = useAgentConfig() as { config: any, getActiveRoles: any };
@@ -125,8 +111,8 @@ async function handleConfigUpdate() {
 }
 
 // Handle sending messages
-async function handleSendMessage() {
-  if (!userInput.value.trim() || isLoading.value) return;
+const sendMessage = async () => {
+  if (!newMessage.value.trim() || isLoading.value) return;
 
   // Check for API key
   const apiKey = getStoredApiKey();
@@ -135,13 +121,13 @@ async function handleSendMessage() {
     return;
   }
 
-  const task = userInput.value;
+  const task = newMessage.value;
   messages.value.push({
     role: 'user',
     content: task,
   });
 
-  userInput.value = '';
+  newMessage.value = '';
   isLoading.value = true;
 
   try {
@@ -205,6 +191,15 @@ const model = ref(null);
 const modelConfig = ref({});
 const availableModels = ref([]);
 const updateConfig = () => {};
+
+const handleApiKeySubmit = async (apiKey: string) => {
+  try {
+    await validateApiKey(apiKey);
+    showApiKeyDialog.value = false;
+  } catch (error) {
+    error.value = 'Invalid API key';
+  }
+}
 </script>
 
 <style scoped>

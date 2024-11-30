@@ -1,53 +1,41 @@
 <template>
   <div>
-    <Card class="component-title">
-      <template #content>
-        <div class="flex-none p-1 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-          <div class="flex items-center gap-2 w-full">
-            <BackButton />
-            <Button label="Agent Collaboration Demo" severity="info" disabled class="flex-1" />
-            <HelpDialog
-              title="Agent Collaboration"
-              docPath="/docs/agent-collaboration"
-            />
-            <Button
-              icon="pi pi-cog"
-              @click="showSidebar = true"
-              text
-              rounded
-              aria-label="Settings"
-              class="p-1"
-            />
-          </div>
-        </div>
-      </template>
-    </Card>
+    <header>
+      <div class="flex items-center gap-2 w-full px-0">
+        <BackButton />
+        <Button label="Agent Collaboration" severity="info" disabled class="flex-1 p-0" />
+        <HelpDialog
+          title="Agent Collaboration"
+          docPath="/docs/agent-collaboration"
+        />
+        <Button
+          icon="pi pi-cog"
+          @click="showSidebar = true"
+          text
+          rounded
+          aria-label="Settings"
+          class="p-1"
+        />
+      </div>
+    </header>
 
-    <Card class="mb-4">
-      <template #title>Agent Collaboration</template>
-      <template #content>
-        <div class="flex-1 overflow-y-auto flex flex-col">
-          <div class="flex flex-col h-[600px]">
-            <MessagesArea
-              :messages="messages"
-              :is-loading="isLoading"
-              :hide-scrollbar="true"
-              class="flex-1"
-            />
-            <div class="flex-none p-1 border-t dark:border-gray-700">
-              <ChatInput
-                v-model="userInput"
-                :is-loading="isLoading"
-                @send-message="handleSendMessage"
-                placeholder="Enter your task for the agents..."
-              />
-            </div>
-          </div>
-        </div>
-      </template>
-    </Card>
+    <ChatInterface 
+      v-model="newMessage"
+      :messages="messages"
+      :is-loading="isLoading"
+      @send="sendMessage"
+    />
 
-    <ApiKeyDialog v-if="showApiKeyDialog" @close="showApiKeyDialog = false" />
+    <ApiKeyDialog 
+      v-if="showApiKeyDialog"
+      v-model="showApiKeyDialog"
+      v-model:apiKey="apiKey"
+      :error="error"
+      provider="openai"
+      @close="showApiKeyDialog = false"
+      @submit="handleApiKeySubmit"
+    />
+
     <ModelConfigSidebar
       v-model="showSidebar"
       :model="model"
@@ -65,15 +53,15 @@ import { ChatOpenAI } from '@langchain/openai';
 import { RunnableSequence } from '@langchain/core/runnables';
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts';
 import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
-import Card from 'primevue/card';
+import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import BackButton from '~/components/BackButton.vue';
-import MessagesArea from './components/MessagesArea.vue';
-import ChatInput from './components/ChatInput.vue';
 import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
 import HelpDialog from '~/components/HelpDialog.vue';
 import ModelConfigSidebar from '~/pages/ai/components/ModelConfigSidebar.vue';
+import ChatInterface from './components/ChatInterface.vue';
 import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
+import { useAIModel } from '~/composables/useAIModel';
 import '@/assets/css/component-title.css';
 
 // Types
@@ -91,10 +79,24 @@ interface Agent {
 
 // Component state
 const messages = ref<Message[]>([]);
-const userInput = ref('');
+const newMessage = ref('');
 const isLoading = ref(false);
 const showApiKeyDialog = ref(false);
 const showSidebar = ref(false);
+const apiKey = ref('');
+const error = ref('');
+
+// Model configuration
+const model = ref('gpt-3.5-turbo');
+const modelConfig = ref({
+  temperature: 0.7,
+  maxTokens: 1000
+});
+const availableModels = ref(['gpt-3.5-turbo', 'gpt-4']);
+
+const updateConfig = (newConfig: any) => {
+  modelConfig.value = { ...newConfig };
+};
 
 // API Key handling
 const { validateApiKey, getStoredApiKey } = useApiKeyValidation();
@@ -148,14 +150,15 @@ const determineNextAgent = (response: string, currentAgent: string): string => {
 const initializeAgents = async (apiKey: string) => {
   try {
     for (const [key, agent] of Object.entries(agents.value)) {
-      const model = new ChatOpenAI({
-        modelName: 'gpt-3.5-turbo',
-        temperature: 0.7,
+      const llm = new ChatOpenAI({
+        modelName: model.value,
+        temperature: modelConfig.value.temperature,
+        maxTokens: modelConfig.value.maxTokens,
         openAIApiKey: apiKey,
       });
 
-      agent.model = model;
-      agent.chain = createAgentChain(agent, model);
+      agent.model = llm;
+      agent.chain = createAgentChain(agent, llm);
     }
     return true;
   } catch (error) {
@@ -165,8 +168,24 @@ const initializeAgents = async (apiKey: string) => {
 };
 
 // Handle sending messages
-const handleSendMessage = async () => {
-  if (!userInput.value.trim() || isLoading.value) return;
+  /**
+   * Handle sending a message by the user. This function will kick off the
+   * collaboration loop, where the agents will be called in sequence until
+   * a condition is met.
+   *
+   * The flow of the collaboration is as follows:
+   * 1. The user sends a message, which is added to the list of messages.
+   * 2. The programmer agent is called with the user's message as input.
+   * 3. The programmer agent's response is added to the list of messages.
+   * 4. The response is analyzed to determine the next agent to call.
+   * 5. If the next agent is not the same as the current agent, the loop
+   *    is repeated with the new agent.
+   * 6. The loop is limited to 6 iterations to prevent infinite loops.
+   *
+   * @returns {Promise<void>}
+   */
+const sendMessage = async () => {
+  if (!newMessage.value.trim() || isLoading.value) return;
 
   const apiKey = getStoredApiKey();
   if (!apiKey) {
@@ -175,8 +194,8 @@ const handleSendMessage = async () => {
   }
 
   isLoading.value = true;
-  const userMessage = userInput.value;
-  userInput.value = '';
+  const userMessage = newMessage.value;
+  newMessage.value = '';
 
   try {
     // Initialize agents if needed
@@ -232,6 +251,16 @@ const handleSendMessage = async () => {
     });
   } finally {
     isLoading.value = false;
+  }
+};
+
+const handleApiKeySubmit = async (apiKey: string) => {
+  try {
+    await validateApiKey(apiKey);
+    await initializeAgents(apiKey);
+  } catch (error) {
+    console.error('Error handling API key submit:', error);
+    error.value = error.message;
   }
 };
 

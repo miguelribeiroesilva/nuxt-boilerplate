@@ -1,61 +1,48 @@
 <template>
-  <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
-    <div class="flex items-center gap-2 w-full">
+  <header>
+    <div class="flex items-center gap-2 w-full px-0">
       <BackButton />
       <Button label="Streaming Chat" severity="info" disabled class="flex-1" />
       <HelpDialog title="Streaming Chat" docPath="/docs/chat-stream" />
       <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
     </div>
+  </header>
 
-    <div class="flex-1 mt-4 overflow-hidden">
-      <div v-if="messages.length === 0 && !isLoading" class="flex flex-col items-center justify-center h-full">
-        <div class="max-w-2xl text-center text-gray-600 dark:text-gray-400">
-          <p class="text-lg">Start a new conversation</p>
-        </div>
-      </div>
+  <ChatInterface 
+    v-model="newMessage"
+    :messages="messages"
+    :is-loading="isLoading"
+    @send="sendMessage"
+  />
 
-      <div v-else class="space-y-4">
-        <MessagesArea :messages="messages" :is-loading="isLoading" :hide-scrollbar="true" />
-      </div>
+  <ApiKeyDialog 
+    v-if="showApiKeyDialog"
+    v-model="showApiKeyDialog"
+    v-model:apiKey="apiKey"
+    :error="error"
+    provider="openai"
+    @close="showApiKeyDialog = false"
+    @submit="handleApiKeySubmit"
+  />
 
-      <!-- Loading indicator -->
-      <div v-if="isLoading" class="flex items-start space-x-4">
-        <div class="flex-shrink-0">
-          <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-            AI
-          </div>
-        </div>
-        <div class="flex-1">
-          <div class="animate-pulse">
-            <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-              <div class="space-y-2 mt-2">
-                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="flex-none p-1 border-t dark:border-gray-700">
-      <ChatInput v-model="newMessage" :is-loading="isLoading" @send-message="sendMessage" />
-    </div>
-
-    <ModelConfigSidebar v-model="showSidebar" :model="model" :config="modelConfig" :available-models="availableModels"
-      @update:config="updateConfig" position="right" />
-  </div>
+  <ModelConfigSidebar
+    v-model="showSidebar"
+    :model="model"
+    :config="modelConfig"
+    :available-models="availableModels"
+    @update:config="updateConfig"
+    position="right"
+  />
 </template>
 
 <script setup lang="ts">
 import { collection, query, orderBy, onSnapshot, updateDoc, Timestamp, serverTimestamp, addDoc } from 'firebase/firestore'
 import ModelConfigSidebar from './components/ModelConfigSidebar.vue'
-import MessagesArea from './components/MessagesArea.vue'
-import ChatInput from './components/ChatInput.vue'
+import ChatInterface from './components/ChatInterface.vue'
 import { useAiQuotes } from '~/composables/useAiQuotes'
 import { SystemMessage, HumanMessage, AIMessage } from '@langchain/core/messages'
 import Button from 'primevue/button'
+import ApiKeyDialog from './components/ApiKeyDialog.vue'
 
 interface Message {
   id?: string

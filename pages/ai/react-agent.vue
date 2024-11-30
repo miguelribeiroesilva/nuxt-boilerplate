@@ -1,65 +1,25 @@
 <template>
-  <div>
-    <Card class="component-title">
-      <template #content>
-        <div class="flex-none p-1 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-          <div class="flex items-center gap-2 w-full">
-            <BackButton />
-            <Button label="ReAct Agent Demo" severity="info" disabled class="flex-1" />
-            <HelpDialog
-              title="ReAct Agent"
-              docPath="/docs/react-agent"
-            />
-            <Button
-              icon="pi pi-cog"
-              @click="showSidebar = true"
-              text
-              rounded
-              aria-label="Settings"
-              class="p-1"
-            />
-          </div>
-        </div>
-      </template>
-    </Card>
+  <header>
+    <div class="flex items-center gap-2 w-full px-0">
+      <BackButton />
+      <Button label="ReAct Agent" severity="info" disabled class="flex-1" />
+      <HelpDialog title="ReAct Agent" docPath="/docs/react-agent" />
+      <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
+    </div>
+  </header>
 
-    <Card>
-      <template #title>ReAct Agent Interaction</template>
-      <template #content>
-        <div class="flex-1 overflow-y-auto flex flex-col">
-          <!-- Messages Display Area -->
-          <MessagesArea
-            :messages="messages || []"
-            :is-loading="isLoading"
-            :hide-scrollbar="true"
-            class="flex-1"
-          />
+  <ChatInterface 
+    v-model="newMessage"
+    :messages="messages"
+    :is-loading="isLoading"
+    @send="sendMessage"
+  />
 
-          <!-- Input Area -->
-          <div class="flex-none p-1 border-t dark:border-gray-700">
-            <ChatInput
-              :model-value="userInput"
-              @update:model-value="userInput = $event"
-              :is-loading="isLoading"
-              @send-message="handleSendMessage"
-              :placeholder="'Ask me to solve a problem...'"
-            />
-          </div>
-        </div>
-      </template>
-    </Card>
+  <ApiKeyDialog v-model="showApiKeyDialog" @close="showApiKeyDialog = false" />
 
-    <ApiKeyDialog v-if="showApiKeyDialog" @close="showApiKeyDialog = false" />
+  <ModelConfigSidebar v-model="showSidebar" :model="model" :config="modelConfig" :available-models="availableModels"
+    @update:config="updateConfig" position="right" />
 
-    <ModelConfigSidebar
-      v-model="showSidebar"
-      :model="model"
-      :config="modelConfig"
-      :available-models="availableModels"
-      @update:config="updateConfig"
-      position="right"
-    />
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -72,8 +32,7 @@ import { StructuredOutputParser } from '@langchain/core/output_parsers';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 import BackButton from '~/components/BackButton.vue';
-import MessagesArea from './components/MessagesArea.vue';
-import ChatInput from './components/ChatInput.vue';
+import ChatInterface from './components/ChatInterface.vue';
 import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
 import HelpDialog from '~/components/HelpDialog.vue';
 import ModelConfigSidebar from '~/pages/ai/components/ModelConfigSidebar.vue';
@@ -94,7 +53,7 @@ interface ThoughtAction {
 
 // Component state
 const messages = ref<Message[]>([]);
-const userInput = ref('');
+const newMessage = ref('');
 const isLoading = ref(false);
 const showApiKeyDialog = ref(false);
 const apiKeyError = ref<string | null>(null);
@@ -155,8 +114,8 @@ const initializeModel = async (apiKey: string) => {
 };
 
 // Handle sending messages
-async function handleSendMessage() {
-  if (!userInput.value.trim() || isLoading.value) return;
+async function sendMessage() {
+  if (!newMessage.value.trim() || isLoading.value) return;
 
   // Check for API key
   const apiKey = getStoredApiKey();
@@ -165,13 +124,13 @@ async function handleSendMessage() {
     return;
   }
 
-  const question = userInput.value;
+  const question = newMessage.value;
   messages.value.push({
     role: 'user',
     content: question,
   });
 
-  userInput.value = '';
+  newMessage.value = '';
   isLoading.value = true;
 
   try {
@@ -225,6 +184,3 @@ function updateConfig(config: any) {
   modelConfig.value = config;
 }
 </script>
-
-<style scoped>
-</style>

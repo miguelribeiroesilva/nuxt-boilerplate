@@ -2,7 +2,7 @@
   <div>
     <Card class="first-card">
     <BackButton />
-    <Button label="Firebase Authentication Demo" severity="info" disabled class="flex-1" />
+    <Button label="Firebase Authentication" severity="info" disabled class="flex-1" />
     <!-- User Profile -->
     <div v-if="currentUser" class="mb-8">
       <div class="flex items-center justify-between">

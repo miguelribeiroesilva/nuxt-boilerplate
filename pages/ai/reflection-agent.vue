@@ -1,272 +1,81 @@
 <template>
-  <div>
-    <Card class="component-title">
-      <template #content>
+  <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
+    <header>
+      <div class="flex items-center gap-2 w-full px-0">
         <BackButton />
-        <Button label="Reflection Agent Demo" severity="info" disabled class="flex-1" />
-      </template>
-    </Card>
+        <Button label="Reflection Agent" severity="info" disabled class="flex-1" />
+        <HelpDialog title="Reflection Agent" docPath="/docs/reflection-agent" />
+        <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
+      </div>
+    </header>
 
-    <Card class="mb-4">
-      <template #title>Agent Status</template>
-      <template #content>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <PerformanceMetrics :metrics="metrics" />
-          <AgentStrategy v-model:maxReflections="maxReflections" v-model:temperature="temperature" />
-        </div>
-      </template>
-    </Card>
+    <ChatInterface 
+      v-model="newMessage"
+      :messages="messages"
+      :is-loading="isLoading"
+      @send="sendMessage"
+    />
 
-    <Card>
-      <template #title>Agent Interaction</template>
-      <template #content>
-        <div class="flex flex-col h-[600px]">
-          <MessagesArea :messages="messages" :is-loading="isLoading" :hide-scrollbar="true" class="flex-1" />
-          <div class="flex-none p-1 border-t dark:border-gray-700">
-            <ChatInput v-model="userInput" :is-loading="isLoading" @send-message="handleSendMessage"
-              :placeholder="'Ask a question or describe a task...'" />
-          </div>
-        </div>
-      </template>
-    </Card>
-
-    <ApiKeyDialog v-if="showApiKeyDialog" @close="showApiKeyDialog = false" />
+    <ApiKeyDialog v-if="showApiKeyDialog" v-model="showApiKeyDialog" provider="openai" @close="showApiKeyDialog = false" />
+    <ModelConfigSidebar
+      v-model="showSidebar"
+      :model="model"
+      :config="modelConfig"
+      :available-models="availableModels"
+      @update:config="updateConfig"
+      position="right"
+    />
+    <AgentStatus
+      :metrics="metrics"
+      :maxReflections="maxReflections"
+      :temperature="temperature"
+      @update:maxReflections="maxReflections = $event"
+      @update:temperature="temperature = $event"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import '@/assets/css/component-title.css';
-import { ref, watch, onMounted } from 'vue';
-import { ChatOpenAI } from '@langchain/openai';
-import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
-import { StringOutputParser } from '@langchain/core/output_parsers';
-import { PromptTemplate } from '@langchain/core/prompts';
-import { StructuredOutputParser } from '@langchain/core/output_parsers';
-import type { Message } from '~/composables/useAgentConfig';
-import Card from 'primevue/card';
+import { watch, onMounted } from 'vue';
 import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
 import BackButton from '~/components/BackButton.vue';
-import MessagesArea from './components/MessagesArea.vue';
-import ChatInput from './components/ChatInput.vue';
 import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
-import PerformanceMetrics from './components/PerformanceMetrics.vue';
-import AgentStrategy from './components/AgentStrategy.vue';
-import { useAgentMetrics } from '~/composables/useAgentMetrics';
-import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
+import AgentStatus from './components/AgentStatus.vue';
+import ModelConfigSidebar from './components/ModelConfigSidebar.vue';
+import ChatInterface from './components/ChatInterface.vue';
+import { useReflectionAgent } from '~/composables/useReflectionAgent';
 
-// Component state
-const messages = ref<Message[]>([]);
-const userInput = ref('');
-const isLoading = ref(false);
-const maxReflections = ref(3);
-const temperature = ref(0.7);
-const showApiKeyDialog = ref(false);
-
-// Convert Langchain messages to our Message type
-function convertMessage(msg: HumanMessage | AIMessage | SystemMessage): Message {
-  if (msg instanceof HumanMessage) {
-    return { role: 'human', content: msg.content };
-  } else if (msg instanceof AIMessage) {
-    return { role: 'assistant', content: msg.content };
-  } else if (msg instanceof SystemMessage) {
-    return { role: 'human', content: msg.content }; // Map system to human
-  }
-  throw new Error('Unsupported message type');
-}
-
-// Get metrics from composable
 const {
+  // State
+  messages,
+  isLoading,
+  showApiKeyDialog,
+  showSidebar,
+  newMessage,
+  maxReflections,
+  temperature,
+  modelConfig,
+  model,
+  availableModels,
   metrics,
-  incrementTotal,
-  incrementSuccesses,
-  incrementReflections
-} = useAgentMetrics();
 
-// API Key handling
-const { validateApiKey, getStoredApiKey } = useApiKeyValidation();
-
-// Initialize OpenAI model
-let model: ChatOpenAI | null = null;
-
-const initializeModel = async (apiKey: string) => {
-  try {
-    model = new ChatOpenAI({
-      modelName: 'gpt-3.5-turbo',
-      temperature: temperature.value,
-      openAIApiKey: apiKey,
-    });
-    return true;
-  } catch (error) {
-    console.error('Error initializing model:', error);
-    return false;
-  }
-};
-
-// Create output parsers
-const responseParser = StructuredOutputParser.fromNamesAndDescriptions({
-  answer: "The agent's response to the user's question",
-  confidence: "A number between 0 and 1 indicating confidence in the answer",
-  reasoning: "The reasoning behind the answer",
-});
-
-const reflectionParser = StructuredOutputParser.fromNamesAndDescriptions({
-  evaluation: "Evaluation of the previous response (good/needs_improvement)",
-  critique: "Specific critique of what could be improved",
-  improvement: "An improved version of the response",
-  confidence: "New confidence score between 0 and 1",
-});
-
-// Create prompt templates
-const initialPrompt = PromptTemplate.fromTemplate(`
-You are a helpful AI assistant with the ability to reflect on and improve your responses.
-
-Question: {question}
-
-Please provide a response in the following format:
-answer: Your direct response to the question
-confidence: Your confidence in the answer (0-1)
-reasoning: Your reasoning process
-`);
-
-const reflectionPrompt = PromptTemplate.fromTemplate(`
-Review the following response to the question: {question}
-
-Response: {previous_response}
-
-Please evaluate this response and provide improvements in the following format:
-evaluation: Whether the response is good or needs improvement
-critique: Specific aspects that could be improved
-improvement: An improved version of the response
-confidence: Your confidence in the improved response (0-1)
-`);
-
-// Handle sending messages
-const handleSendMessage = async () => {
-  if (!userInput.value.trim() || isLoading.value) return;
-
-  try {
-    isLoading.value = true;
-
-    // Convert user input to a message and add to messages
-    const userMessage = new HumanMessage(userInput.value);
-    messages.value.push(convertMessage(userMessage));
-
-    // Prepare the conversation history
-    const conversationHistory = messages.value.map(msg => {
-      // Convert local Message type to LangChain message types
-      switch (msg.role) {
-        case 'user':
-          return new HumanMessage(msg.content);
-        case 'assistant':
-          return new AIMessage(msg.content);
-        case 'system':
-          return new SystemMessage(msg.content);
-        default:
-          return new HumanMessage(msg.content);
-      }
-    });
-
-    // Check for API key
-    const apiKey = getStoredApiKey();
-    if (!apiKey) {
-      showApiKeyDialog.value = true;
-      return;
-    }
-
-    const question = userInput.value;
-    userInput.value = '';
-    incrementTotal();
-
-    try {
-      // Ensure model is initialized
-      if (!model) {
-        const initialized = await initializeModel(apiKey);
-        if (!initialized) {
-          throw new Error('Failed to initialize model');
-        }
-      }
-
-      // Get initial response
-      const response = await model!.invoke([
-        new SystemMessage(initialPrompt.template),
-        ...conversationHistory
-      ]);
-
-      const parsedResponse = await responseParser.parse(response.content);
-      let currentResponse = parsedResponse;
-      let reflectionCount = 0;
-
-      // Reflection loop
-      while (reflectionCount < maxReflections.value && currentResponse.confidence < 0.9) {
-        reflectionCount++;
-        incrementReflections();
-
-        const reflection = await model!.invoke([
-          new SystemMessage(reflectionPrompt.template),
-          ...conversationHistory,
-          new HumanMessage(JSON.stringify({
-            question,
-            previous_response: currentResponse
-          }))
-        ]);
-
-        const parsedReflection = await reflectionParser.parse(reflection.content);
-
-        if (parsedReflection.evaluation === 'good') {
-          break;
-        }
-
-        currentResponse = {
-          answer: parsedReflection.improvement,
-          confidence: parsedReflection.confidence,
-          reasoning: currentResponse.reasoning + '\n\nImproved after reflection: ' + parsedReflection.critique
-        };
-      }
-
-      // Add AI response to messages
-      const aiMessage = new AIMessage(
-        typeof currentResponse.answer === 'string'
-          ? currentResponse.answer
-          : JSON.stringify(currentResponse.answer)
-      );
-      messages.value.push(convertMessage(aiMessage));
-
-      incrementSuccesses();
-    } catch (error) {
-      console.error('Error:', error);
-      messages.value.push({
-        role: 'error',
-        content: 'An error occurred while processing your request.'
-      });
-    } finally {
-      isLoading.value = false;
-    }
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
+  // Methods
+  sendMessage,
+  initialize,
+  updateConfig
+} = useReflectionAgent();
 
 // Watch temperature changes
 watch(temperature, (newTemp) => {
   if (model) {
-    model.temperature = newTemp;
+    updateConfig({ temperature: newTemp });
   }
 });
 
 // Initialize on mount
-onMounted(async () => {
-  const apiKey = getStoredApiKey();
-  if (apiKey) {
-    try {
-      await initializeModel(apiKey);
-    } catch (error) {
-      console.error('Error initializing model with stored API key:', error);
-      showApiKeyDialog.value = true;
-    }
-  } else {
-    showApiKeyDialog.value = true;
-  }
-});
+onMounted(initialize);
 </script>
 
 <style scoped></style>
