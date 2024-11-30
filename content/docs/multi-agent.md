@@ -29,6 +29,16 @@ A sophisticated system where multiple AI agents work together, each with specifi
    - Combine their expertise
    - Reach comprehensive solutions
 
+## Sample Questions
+
+1. "Design a scalable microservices architecture for an e-commerce platform."
+2. "Analyze this code for potential security vulnerabilities and suggest improvements."
+3. "Help me plan and architect a new web application from scratch."
+4. "Review this system design and provide feedback from different perspectives."
+5. "Brainstorm solutions for optimizing database performance in a high-traffic application."
+
+These questions benefit from multiple agents with different expertise working together to provide comprehensive solutions.
+
 ## Best For
 
 - Complex problem-solving

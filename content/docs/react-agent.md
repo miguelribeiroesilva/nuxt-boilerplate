@@ -39,3 +39,13 @@ The ReAct (Reasoning + Acting) agent combines reasoning and action to solve comp
 - Algorithm development
 - Logic puzzles
 - Multi-step analysis
+
+## Sample Questions
+
+1. "Help me solve this math problem step by step."
+2. "Guide me through developing an algorithm for this task."
+3. "Assist me in solving this logic puzzle, breaking it down into manageable parts."
+4. "Walk me through a multi-step analysis of this data set."
+5. "Help me plan and execute a solution to this complex problem."
+
+These questions showcase the agent's ability to reason and act on complex tasks.

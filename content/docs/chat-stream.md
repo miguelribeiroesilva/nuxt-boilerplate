@@ -41,3 +41,13 @@ A real-time streaming chat interface that shows AI responses as they are being g
    - Watch responses as they form
    - Adjust settings based on task needs
    - Use stop generation if needed
+
+## Sample Questions
+
+1. "Write a detailed explanation of how quantum computing works."
+2. "Create a step-by-step tutorial for building a React component."
+3. "Generate a comprehensive analysis of the latest AI trends."
+4. "Write a technical blog post about microservices architecture."
+5. "Explain the differences between various database types in detail."
+
+These questions are ideal for streaming as you can see the detailed response being built in real-time.

@@ -40,3 +40,13 @@ The Retrieval Agent specializes in accessing and utilizing external knowledge to
 - Provide context when needed
 - Ask for sources when relevant
 - Use follow-up questions to dig deeper
+
+## Sample Questions
+
+1. "Find relevant documentation about React's useEffect hook."
+2. "Search for best practices in database indexing strategies."
+3. "Retrieve information about recent developments in AI technology."
+4. "Find examples of implementing authentication in Node.js."
+5. "Search for common design patterns in microservices architecture."
+
+These questions demonstrate the agent's ability to find and present relevant information from various sources.

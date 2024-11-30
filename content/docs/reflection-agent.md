@@ -35,3 +35,13 @@ The Reflection Agent demonstrates an AI's ability to think about its own reasoni
 - Decision-making scenarios
 - Explanations requiring depth and nuance
 - Tasks benefiting from multiple perspectives
+
+## Sample Questions
+
+1. "Explain your thought process as you solve this programming problem."
+2. "Walk me through your reasoning for this architectural decision."
+3. "Analyze your previous response and suggest potential improvements."
+4. "Show me how you arrived at this conclusion, including any assumptions made."
+5. "Reflect on different approaches you considered for solving this problem."
+
+These questions help demonstrate the agent's ability to explain its thinking and reflect on its decisions.

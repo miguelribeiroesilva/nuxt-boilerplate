@@ -25,3 +25,11 @@ A straightforward chat interface for interacting with AI models. This component 
 - Provide relevant context when needed
 - Break down complex questions into smaller parts
 - Use follow-up questions to get more detailed information
+
+## Sample Questions
+
+1. "Can you help me understand how blockchain technology works?"
+2. "What are the main differences between Python and JavaScript?"
+3. "Could you explain the concept of machine learning in simple terms?"
+4. "What are some effective strategies for improving code readability?"
+5. "Can you help me debug this error message: [paste error here]?"
