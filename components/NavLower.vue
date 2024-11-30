@@ -60,7 +60,11 @@ const items = [
         label: 'Multi Agent',
         icon: 'pi pi-bolt',
         command: () => navigateTo('/ai/multi-agent')
-      }
+      },
+      {
+        label: 'Agent Collaboration Demo',
+        icon: 'pi pi-cog',
+        command: () => navigateTo('/ai/agent-collaboration')}
     ]
   },
   {

@@ -15,6 +15,11 @@ export interface AgentConfig {
   temperature: number;
 }
 
+export interface Message {
+  role: "user" | "assistant" | "error" | "human" | "ai" | "system";
+  content: string;
+}
+
 const defaultConfig: AgentConfig = {
   roles: [
     {
@@ -77,7 +82,7 @@ export function useAgentConfig() {
   };
 
   const getActiveRoles = () => {
-    return config.value.roles.filter((role: AgentRole) => role.active);
+    return config.value.roles.filter(role => role.active);
   };
 
   return {

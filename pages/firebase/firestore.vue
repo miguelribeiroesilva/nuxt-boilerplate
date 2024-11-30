@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <BackButton />
-    <Button severity="info" disabled>Firestore CRUD Demo</Button>
+    <Button severity="info" disabled class="flex-1">Firestore CRUD Demo</Button>
 
     <!-- Toolbar -->
     <div class="flex justify-between items-center mb-4">

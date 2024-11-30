@@ -1,40 +1,44 @@
 <template>
-  <form :class="$attrs.class">
-    <label for="themes"><Icon name="gg:dark-mode" size="16px" /></label>
-    <select
-      id="themes"
-      v-model="$colorMode.preference"
-      aria-label="themes"
-      class="border-1 border-l-3 mx-1 inline-block border-gray-900 bg-inherit text-sm"
-    >
-      <option
-        class="dark:bg-slate-800"
-        value="system"
-        :aria-label="t('themes.system')"
-      >
-        {{ t("themes.system") }}
-      </option>
-      <option
-        class="dark:bg-slate-800"
-        value="light"
-        :aria-label="t('themes.light')"
-      >
-        {{ t("themes.light") }}
-      </option>
-      <option
-        class="dark:bg-slate-800"
-        value="dark"
-        :aria-label="t('themes.dark')"
-      >
-        {{ t("themes.dark") }}
-      </option>
-    </select>
-  </form>
+  <Button
+    :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'"
+    @click="toggleDark()"
+    text
+    rounded
+    class="theme-toggle inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1 text-gray-900 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
+    aria-label="Toggle dark mode"
+  />
 </template>
 
 <script setup lang="ts">
-const { t } = useI18n();
-defineOptions({
-  inheritAttrs: false
-})
+import { useDark, useToggle } from '@vueuse/core';
+
+const isDark = useDark();
+const toggleDark = useToggle(isDark);
 </script>
+
+<style scoped>
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  padding: 0.25rem;
+
+  &:hover {
+    background-color: var(--surface-200);
+  }
+
+  :deep(.p-button-icon) {
+    font-size: 1rem;
+    color: #4B5563;
+  }
+}
+
+:deep(.dark) {
+  .theme-toggle:hover {
+    background-color: var(--surface-700);
+  }
+
+  .theme-toggle :deep(.p-button-icon) {
+    color: #FFFFFF;
+  }
+}
+</style>

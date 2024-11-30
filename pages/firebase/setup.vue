@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <BackButton />
-    <Button severity="info" disabled>Firebase</Button>
+    <Button severity="info" disabled class="flex-1">Firebase</Button>
 
     <!-- Configuration Status -->
     <div class="mb-4">

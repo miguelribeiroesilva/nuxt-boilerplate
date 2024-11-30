@@ -1,149 +1,149 @@
 <template>
-  <Card>
-    <template #content>
-      <BackButton />
-      <Button label="Firebase Storage Demo" severity="info" disabled />
-    </template>
-  </Card>
-  <Card>
-    <template #title>Upload Files</template>
-    <template #content>
-      <form @submit.prevent="handleUpload" class="space-y-2">
-        <div class="p-float-label">
-          <InputText id="folder" v-model="uploadForm.folder" class="w-full"
-            :class="{ 'p-invalid': submitted && !uploadForm.folder }" />
-          <label for="folder">Folder Path</label>
-        </div>
+  <div>
+    <Card class="first-card">
+      <template #content>
+        <BackButton />
+        <Button label="Firebase Storage Demo" severity="info" disabled class="flex-1" />
+      </template>
+    </Card>
+    <Card>
+      <template #title>Upload Files</template>
+      <template #content>
+        <form @submit.prevent="handleUpload" class="space-y-2">
+          <div class="p-float-label">
+            <InputText id="folder" v-model="uploadForm.folder" class="w-full"
+              :class="{ 'p-invalid': submitted && !uploadForm.folder }" />
+            <label for="folder">Folder Path</label>
+          </div>
 
-        <!-- File Input -->
-        <div class="space-y-1">
-          <label class="block text-sm font-medium">File</label>
-          <FileUpload mode="basic" :auto="true" chooseLabel="Choose File" @select="onFileSelect" :maxFileSize="10000000"
-            accept="image/*,.pdf,.doc,.docx" />
-          <small class="text-xs text-gray-500 dark:text-gray-400">
-            Max file size: 10MB. Supported formats: Images, PDF, DOC
-          </small>
-        </div>
+          <!-- File Input -->
+          <div class="space-y-1">
+            <label class="block text-sm font-medium">File</label>
+            <FileUpload mode="basic" :auto="true" chooseLabel="Choose File" @select="onFileSelect" :maxFileSize="10000000"
+              accept="image/*,.pdf,.doc,.docx" />
+            <small class="text-xs text-gray-500 dark:text-gray-400">
+              Max file size: 10MB. Supported formats: Images, PDF, DOC
+            </small>
+          </div>
 
-        <!-- Custom Metadata -->
-        <div class="space-y-1">
-          <label class="block text-sm font-medium">Custom Metadata (Optional)</label>
-          <div v-for="(value, index) in uploadForm.metadata" :key="index" class="flex gap-2">
-            <div class="p-float-label flex-1">
-              <InputText :id="'key-' + index" v-model="uploadForm.metadata[index].key" class="w-full" />
-              <label :for="'key-' + index">Key</label>
+          <!-- Custom Metadata -->
+          <div class="space-y-1">
+            <label class="block text-sm font-medium">Custom Metadata (Optional)</label>
+            <div v-for="(value, index) in uploadForm.metadata" :key="index" class="flex gap-2">
+              <div class="p-float-label flex-1">
+                <InputText :id="'key-' + index" v-model="uploadForm.metadata[index].key" class="w-full" />
+                <label :for="'key-' + index">Key</label>
+              </div>
+              <div class="p-float-label flex-1">
+                <InputText :id="'value-' + index" v-model="uploadForm.metadata[index].value" class="w-full" />
+                <label :for="'value-' + index">Value</label>
+              </div>
+              <Button type="button" icon="pi pi-times" severity="danger" text @click="removeMetadata(index)" />
             </div>
-            <div class="p-float-label flex-1">
-              <InputText :id="'value-' + index" v-model="uploadForm.metadata[index].value" class="w-full" />
-              <label :for="'value-' + index">Value</label>
+            <Button type="button" icon="pi pi-plus" label="Add Metadata" text @click="addMetadata" />
+          </div>
+
+          <Button type="submit" :loading="uploading" :disabled="!uploadForm.file" severity="primary" class="w-full">
+            Upload File
+          </Button>
+        </form>
+        <!-- Preview -->
+        <div v-if="uploadForm.file"
+          class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 flex flex-col items-center justify-center">
+          <h3 class="text-sm font-medium mb-2">Preview</h3>
+          <!-- Image Preview -->
+          <div v-if="isImage" class="mb-2">
+            <Image :src="previewUrl" :alt="uploadForm.file.name" preview class="max-w-full h-auto rounded-lg" :pt="{
+              image: { class: 'max-h-[200px] object-contain' }
+            }" />
+          </div>
+          <!-- File Info -->
+          <div class="w-full space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="font-medium">Name:</span>
+              <span>{{ uploadForm.file.name }}</span>
             </div>
-            <Button type="button" icon="pi pi-times" severity="danger" text @click="removeMetadata(index)" />
+            <div class="flex items-center justify-between">
+              <span class="font-medium">Size:</span>
+              <span>{{ formatFileSize(uploadForm.file.size) }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="font-medium">Type:</span>
+              <span>{{ uploadForm.file.type || 'Unknown' }}</span>
+            </div>
           </div>
-          <Button type="button" icon="pi pi-plus" label="Add Metadata" text @click="addMetadata" />
+        </div>
+        <!-- File Browser -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h3>File Browser</h3>
+            <div class="flex items-center gap-2">
+              <span class="p-float-label">
+                <InputText id="path" v-model="currentPath" class="w-48" />
+                <label for="path">Current Path</label>
+              </span>
+              <Button icon="pi pi-refresh" @click="refreshFiles" :loading="loading" text />
+            </div>
+          </div>
+
+          <!-- Files Table -->
+          <DataTable :value="files" :loading="loading" :paginator="true" :rows="10" stripedRows class="p-datatable-sm">
+            <!-- Preview -->
+            <Column header="Preview" class="w-24">
+              <template #body="{ data }">
+                <div v-if="isImageFile(data.name)" class="w-16 h-16">
+                  <Image :src="data.downloadURL" :alt="data.name" preview :pt="{
+                    image: { class: 'w-16 h-16 object-cover rounded' }
+                  }" />
+                </div>
+                <i v-else class="pi pi-file text-xl" />
+              </template>
+            </Column>
+
+            <!-- Name -->
+            <Column field="name" header="Name" sortable>
+              <template #body="{ data }">
+                <div class="flex items-center gap-2">
+                  <i :class="getFileIcon(data.name)" />
+                  <span>{{ data.name }}</span>
+                </div>
+              </template>
+            </Column>
+
+            <!-- Path -->
+            <Column field="fullPath" header="Path" sortable />
+
+            <!-- Actions -->
+            <Column header="Actions" class="w-24">
+              <template #body="{ data }">
+                <div class="flex items-center gap-2">
+                  <Button icon="pi pi-download" text rounded @click="downloadFile(data)" v-tooltip.top="'Download'" />
+                  <Button icon="pi pi-trash" text rounded severity="danger" @click="confirmDelete(data)"
+                    v-tooltip.top="'Delete'" />
+                </div>
+              </template>
+            </Column>
+          </DataTable>
         </div>
 
-        <Button type="submit" :loading="uploading" :disabled="!uploadForm.file" severity="primary" class="w-full">
-          Upload File
-        </Button>
-      </form>
-      <!-- Preview -->
-      <div v-if="uploadForm.file"
-        class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 flex flex-col items-center justify-center">
-        <h3 class="text-sm font-medium mb-2">Preview</h3>
-        <!-- Image Preview -->
-        <div v-if="isImage" class="mb-2">
-          <Image :src="previewUrl" :alt="uploadForm.file.name" preview class="max-w-full h-auto rounded-lg" :pt="{
-            image: { class: 'max-h-[200px] object-contain' }
-          }" />
-        </div>
-        <!-- File Info -->
-        <div class="w-full space-y-1">
-          <div class="flex items-center justify-between">
-            <span class="font-medium">Name:</span>
-            <span>{{ uploadForm.file.name }}</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="font-medium">Size:</span>
-            <span>{{ formatFileSize(uploadForm.file.size) }}</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="font-medium">Type:</span>
-            <span>{{ uploadForm.file.type || 'Unknown' }}</span>
-          </div>
-        </div>
+      </template>
+    </Card>
+
+    <Dialog v-model:visible="deleteDialog.visible" modal header="Confirm Delete" :style="{ width: '450px' }">
+      <div class="space-y-4">
+        <p>Are you sure you want to delete this file?</p>
+        <div class="font-medium">{{ deleteDialog.file?.name }}</div>
       </div>
-      <!-- File Browser -->
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <h3>File Browser</h3>
-          <div class="flex items-center gap-2">
-            <span class="p-float-label">
-              <InputText id="path" v-model="currentPath" class="w-48" />
-              <label for="path">Current Path</label>
-            </span>
-            <Button icon="pi pi-refresh" @click="refreshFiles" :loading="loading" text />
-          </div>
-        </div>
-
-        <!-- Files Table -->
-        <DataTable :value="files" :loading="loading" :paginator="true" :rows="10" stripedRows class="p-datatable-sm">
-          <!-- Preview -->
-          <Column header="Preview" class="w-24">
-            <template #body="{ data }">
-              <div v-if="isImageFile(data.name)" class="w-16 h-16">
-                <Image :src="data.downloadURL" :alt="data.name" preview :pt="{
-                  image: { class: 'w-16 h-16 object-cover rounded' }
-                }" />
-              </div>
-              <i v-else class="pi pi-file text-xl" />
-            </template>
-          </Column>
-
-          <!-- Name -->
-          <Column field="name" header="Name" sortable>
-            <template #body="{ data }">
-              <div class="flex items-center gap-2">
-                <i :class="getFileIcon(data.name)" />
-                <span>{{ data.name }}</span>
-              </div>
-            </template>
-          </Column>
-
-          <!-- Path -->
-          <Column field="fullPath" header="Path" sortable />
-
-          <!-- Actions -->
-          <Column header="Actions" class="w-24">
-            <template #body="{ data }">
-              <div class="flex items-center gap-2">
-                <Button icon="pi pi-download" text rounded @click="downloadFile(data)" v-tooltip.top="'Download'" />
-                <Button icon="pi pi-trash" text rounded severity="danger" @click="confirmDelete(data)"
-                  v-tooltip.top="'Delete'" />
-              </div>
-            </template>
-          </Column>
-        </DataTable>
-      </div>
-
-    </template>
-  </Card>
-
-
-
-
-  <Dialog v-model:visible="deleteDialog.visible" modal header="Confirm Delete" :style="{ width: '450px' }">
-    <div class="space-y-4">
-      <p>Are you sure you want to delete this file?</p>
-      <div class="font-medium">{{ deleteDialog.file?.name }}</div>
-    </div>
-    <template #footer>
-      <Button label="No" icon="pi pi-times" text @click="deleteDialog.visible = false" />
-      <Button label="Delete" icon="pi pi-trash" severity="danger" @click="handleDeleteFile" :loading="loading" />
-    </template>
-  </Dialog>
+      <template #footer>
+        <Button label="No" icon="pi pi-times" text @click="deleteDialog.visible = false" />
+        <Button label="Delete" icon="pi pi-trash" severity="danger" @click="handleDeleteFile" :loading="loading" />
+      </template>
+    </Dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
+import '@/assets/css/component-title.css';
 import Image from 'primevue/image';
 const { uploadFile, deleteFile: deleteStorageFile, listFiles, loading, error } = useStorage();
 const toast = useToast();
@@ -338,3 +338,6 @@ onMounted(() => {
   refreshFiles();
 });
 </script>
+
+<style scoped>
+</style>

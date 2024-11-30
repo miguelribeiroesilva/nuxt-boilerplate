@@ -62,6 +62,21 @@ interface CustomCookie {
   isPreselected?: boolean;
 }
 
+// Extend PrimeVue module options to include services
+declare module '@nuxt/schema' {
+  interface ModuleOptions {
+    primevueSvcOptions?: {
+      services?: {
+        tooltip?: boolean;
+        ripple?: boolean;
+        confirmation?: boolean;
+        dialog?: boolean;
+        toast?: boolean;
+      }
+    }
+  }
+}
+
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
@@ -75,18 +90,47 @@ export default defineNuxtConfig({
     'primevue/resources/primevue.css',
     'primeicons/primeicons.css',
     './assets/css/tailwind.css',
-
   ],
 
   imports: {
     dirs: [
       // scan all modules within `./composables`
-      'composables',
+      'composables/**',
       // scan all modules within `./utils`
       'utils'
     ],
     global: true,
-    autoImport: true
+    autoImport: true,
+    imports: [
+      {
+        from: 'vue',
+        imports: [
+          'ref',
+          'computed',
+          'reactive',
+          'watch',
+          'watchEffect',
+          'onMounted',
+          'onUnmounted',
+          'nextTick',
+          'toRef',
+          'toRefs',
+          'provide',
+          'inject'
+        ],
+      } as any,
+      {
+        from: 'vue-router',
+        imports: [
+          'useRouter',
+          'useRoute',
+          'onBeforeRouteLeave',
+          'onBeforeRouteUpdate',
+          'RouterLink',
+          'RouterView'
+        ]
+      } as any
+    ],
   },
 
   components: [
@@ -143,8 +187,18 @@ export default defineNuxtConfig({
     '@dargmuesli/nuxt-cookie-control',
   ],
 
+  primevueSvcOptions: {
+    services: {
+      tooltip: true,
+      ripple: true,
+      confirmation: true,
+      dialog: true,
+      toast: true
+    }
+  },
+
   primevue: {
-    cssLayerOrder: 'tailwind-base, primevue, tailwind-utilities',
+    cssLayerOrder: 'tailwind-base, primevue, tailwind-utilities' as any,
     options: {
       ripple: true,
       inputStyle: 'filled'
@@ -166,6 +220,7 @@ export default defineNuxtConfig({
         'DataTable',
         'Dialog',
         'Dropdown',
+        'InputSwitch',
         'InputText',
         'InputNumber',
         'Menubar',

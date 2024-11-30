@@ -1,6 +1,6 @@
-# Nuxt Boilerplate
+# AI Nuxt Boilerplate
 
-A ready to use Nuxt 3 boilerplate
+A ready to use Nuxt 3 boilerplate with AI capabilities
 
 ![screenshot](https://raw.githubusercontent.com/miguelribeiroesilva/nuxt-boilerplate/main/.github/screenshot.png)
 

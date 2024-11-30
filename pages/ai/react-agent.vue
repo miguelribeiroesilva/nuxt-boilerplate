@@ -1,16 +1,32 @@
 <template>
   <div>
-    <Card class="mb-4">
+    <Card class="component-title">
       <template #content>
-        <BackButton />
-        <Button label="ReAct Agent Demo" severity="info" disabled />
+        <div class="flex-none p-1 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+          <div class="flex items-center gap-2 w-full">
+            <BackButton />
+            <Button label="ReAct Agent Demo" severity="info" disabled class="flex-1" />
+            <HelpDialog
+              title="ReAct Agent"
+              docPath="/docs/react-agent"
+            />
+            <Button
+              icon="pi pi-cog"
+              @click="showSidebar = true"
+              text
+              rounded
+              aria-label="Settings"
+              class="p-1"
+            />
+          </div>
+        </div>
       </template>
     </Card>
 
     <Card>
       <template #title>ReAct Agent Interaction</template>
       <template #content>
-        <div class="flex flex-col h-[600px]">
+        <div class="flex-1 overflow-y-auto flex flex-col">
           <!-- Messages Display Area -->
           <MessagesArea
             :messages="messages || []"
@@ -33,9 +49,15 @@
       </template>
     </Card>
 
-    <ApiKeyDialog
-      v-if="showApiKeyDialog"
-      @close="showApiKeyDialog = false"
+    <ApiKeyDialog v-if="showApiKeyDialog" @close="showApiKeyDialog = false" />
+
+    <ModelConfigSidebar
+      v-model="showSidebar"
+      :model="model"
+      :config="modelConfig"
+      :available-models="availableModels"
+      @update:config="updateConfig"
+      position="right"
     />
   </div>
 </template>
@@ -52,12 +74,15 @@ import Button from 'primevue/button';
 import BackButton from '~/components/BackButton.vue';
 import MessagesArea from './components/MessagesArea.vue';
 import ChatInput from './components/ChatInput.vue';
-import ApiKeyDialog from '~/components/ApiKeyDialog.vue';
+import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
+import HelpDialog from '~/components/HelpDialog.vue';
+import ModelConfigSidebar from '~/pages/ai/components/ModelConfigSidebar.vue';
 import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
+import '@/assets/css/component-title.css';
 
 // Types
 interface Message {
-  role: 'user' | 'assistant' | 'error' | 'system';
+  role: 'user' | 'error' | 'assistant' | 'human' | 'ai';
   content: string;
 }
 
@@ -73,6 +98,9 @@ const userInput = ref('');
 const isLoading = ref(false);
 const showApiKeyDialog = ref(false);
 const apiKeyError = ref<string | null>(null);
+const showSidebar = ref(false);
+const modelConfig = ref({});
+const availableModels = ref([]);
 
 // API Key handling
 const { validateApiKey, getStoredApiKey } = useApiKeyValidation();
@@ -192,4 +220,11 @@ onMounted(async () => {
     showApiKeyDialog.value = true;
   }
 });
+
+function updateConfig(config: any) {
+  modelConfig.value = config;
+}
 </script>
+
+<style scoped>
+</style>

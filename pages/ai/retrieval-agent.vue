@@ -1,9 +1,9 @@
 <template>
   <div>
-    <Card>
+    <Card class="component-title">
       <template #content>
         <BackButton />
-        <Button label="Retrieval Agent Demo" severity="info" disabled />
+        <Button label="Retrieval Agent Demo" severity="info" disabled class="flex-1" />
       </template>
     </Card>
 
@@ -43,15 +43,12 @@
       <template #title>Retrieval Agent Interaction</template>
       <template #content>
         <div class="flex flex-col h-[600px]">
-          <!-- Messages Display Area -->
           <MessagesArea
             :messages="messages"
             :is-loading="isLoading"
             :hide-scrollbar="true"
             class="flex-1"
           />
-
-          <!-- Input Area -->
           <div class="flex-none p-1 border-t dark:border-gray-700">
             <ChatInput
               v-model="userInput"
@@ -65,10 +62,7 @@
       </template>
     </Card>
 
-    <ApiKeyDialog
-      v-if="showApiKeyDialog"
-      @close="showApiKeyDialog = false"
-    />
+    <ApiKeyDialog v-if="showApiKeyDialog" @close="showApiKeyDialog = false" />
   </div>
 </template>
 
@@ -88,8 +82,9 @@ import FileUpload from 'primevue/fileupload';
 import BackButton from '~/components/BackButton.vue';
 import MessagesArea from './components/MessagesArea.vue';
 import ChatInput from './components/ChatInput.vue';
-import ApiKeyDialog from '~/components/ApiKeyDialog.vue';
+import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
 import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
+import '@/assets/css/component-title.css';
 
 // Types
 interface Message {
@@ -320,3 +315,6 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+</style>

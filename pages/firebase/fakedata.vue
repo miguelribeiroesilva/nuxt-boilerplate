@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <BackButton />
-    <Button severity="info" disabled>Data Import</Button>
+    <Button severity="info" disabled class="flex-1">Data Import</Button>
 
     <!-- Import Form -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

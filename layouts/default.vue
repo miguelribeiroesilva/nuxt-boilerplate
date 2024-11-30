@@ -1,7 +1,5 @@
 <script setup lang="ts">
 useLocaleHead({
-  addDirAttribute: true,
-  identifierAttribute: "id",
   addSeoAttributes: true,
 });
 </script>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useRuntimeConfig } from '#app'
+// Define a union type for allowed locales
+type AllowedLocale = 'en' | 'fr' | 'ar'
 
 const { locale } = useI18n()
 const runtimeConfig = useRuntimeConfig()
@@ -10,13 +10,13 @@ const availableLocales = computed(() => {
 })
 
 // Initialize from localStorage if available
-const storedLang = localStorage.getItem('nuxt-lang')
-if (storedLang) {
+const storedLang = localStorage.getItem('nuxt-lang') as AllowedLocale | null
+if (storedLang && ['en', 'fr', 'ar'].includes(storedLang)) {
   locale.value = storedLang
 }
 
 // Update localStorage when language changes
-const updateLocale = (newLocale: string) => {
+const updateLocale = (newLocale: AllowedLocale) => {
   localStorage.setItem('nuxt-lang', newLocale)
 }
 
@@ -26,11 +26,15 @@ defineOptions({
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1 text-sm text-gray-900 dark:border-gray-700 dark:bg-slate-800 dark:text-white">
     <select
-      :value="locale"
-      @change="e => { locale = e.target.value; updateLocale(e.target.value) }"
-      class="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md py-2 pl-3 pr-8 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors"
+      :value="locale.value"
+      @change="e => { 
+        const newLocale = (e.target as HTMLSelectElement).value as AllowedLocale
+        locale.value = newLocale
+        updateLocale(newLocale) 
+      }"
+      class="appearance-none bg-transparent border-none py-1 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors"
     >
       <option
         v-for="loc in availableLocales"

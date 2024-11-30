@@ -1,0 +1,26 @@
+.component-title {
+  border: none !important;
+  padding: 0.25rem 0.5rem !important;
+}
+
+.component-title :deep(.p-card .p-card-body) {
+  padding: 0.25rem 0.5rem !important;
+}
+
+.component-title :deep(.p-card-content) {
+  padding: 0 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.component-title :deep(.p-button.flex-1) {
+  flex: 1 1 auto !important;
+  justify-content: center !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.component-title :deep(.p-button.flex-1:enabled:focus) {
+  box-shadow: none !important;
+}

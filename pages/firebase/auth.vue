@@ -1,7 +1,8 @@
 <template>
-  <Card>
+  <div>
+    <Card class="first-card">
     <BackButton />
-    <Button label="Firebase Authentication Demo" severity="info" disabled />
+    <Button label="Firebase Authentication Demo" severity="info" disabled class="flex-1" />
     <!-- User Profile -->
     <div v-if="currentUser" class="mb-8">
       <div class="flex items-center justify-between">
@@ -81,7 +82,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Email/Password Sign In -->
             <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-              <Button severity="info" disabled/>
+              <Button severity="info" disabled class="flex-1"/>
               <form @submit.prevent="handleEmailSignIn" class="space-y-4">
                 <div class="p-float-label">
                   <InputText
@@ -223,43 +224,15 @@
       </TabView>
     </div>
   </Card>
-
-  <!-- Forgot Password Dialog -->
-  <Dialog
-    v-model:visible="showForgotPassword"
-    modal
-    header="Reset Password"
-    :style="{ width: '450px' }"
-  >
-    <div class="space-y-4">
-      <div class="p-float-label">
-        <InputText
-          id="resetEmail"
-          v-model="resetEmail"
-          type="email"
-          class="w-full"
-          :class="{ 'p-invalid': resetSubmitted && !resetEmail }"
-        />
-        <label for="resetEmail">Email</label>
-      </div>
-      <small class="block text-gray-600 dark:text-gray-400">
-        Enter your email address and we'll send you a link to reset your password.
-      </small>
-    </div>
-    <template #footer>
-      <Button
-        @click="handleResetPassword"
-        :loading="resetting"
-        class="p-button p-component p-button-primary mr-2"
-        severity="primary"
-      >
-        Send Reset Link
-      </Button>
-    </template>
-  </Dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
+import '@/assets/css/component-title.css';
+import { Card } from 'primevue/card';
+import { Avatar } from 'primevue/avatar';
+import { Password } from 'primevue/password';
+import { TabView, TabPanel } from 'primevue/tabview';
 import {
   GithubAuthProvider,
   signInWithPopup,
@@ -517,3 +490,6 @@ watch(authError, (error: any) => {
 // Set page metadata
 
 </script>
+
+<style scoped>
+</style>

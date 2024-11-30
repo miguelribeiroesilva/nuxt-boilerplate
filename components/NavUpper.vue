@@ -1,43 +1,39 @@
 <template>
-  <nav class="flex flex-row justify-between pb-2 pt-4">
-    <NuxtLink to="/" aria-label="Home" class="min-w-fit">
-      <nuxt-img
-        class="h-6 dark:hidden sm:ml-3 lg:ml-0"
-        src="nuxt/full-logo-green-dark.svg"
-        densities="x1 x2"
-        alt="nuxt-logo"
-        style="height: 24px; width: 99px"
-      />
-      <nuxt-img
-        class="hidden h-6 dark:block"
-        src="nuxt/full-logo-green-light.svg"
-        densities="x1 x2"
-        alt="nuxt-logo"
-        style="height: 24px; width: 99px"
-      />
-    </NuxtLink>
-    <div
-      class="flex flex-col space-x-3 space-y-4 sm:flex-row sm:space-y-0 rtl:space-x-reverse"
-    >
-      <ClientOnly>
-        <ThemeSwitcher
-          class="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1 text-sm text-gray-900 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
-        />
-      </ClientOnly>
+  <nav class="border-b border-gray-200 dark:border-gray-700">
+    <div class="flex items-center justify-between px-4 py-2">
+      <div class="flex items-center space-x-4">
+        <NuxtLink to="/" class="flex items-center">
+          <img
+            src="~/assets/img/ai-nuxt-logo.webp"
+            alt="Nuxt Logo"
+            class="w-8 h-8 mr-5"
+          />
+          <span class="font-bold text-xl">{{ $t("site.name") }}</span>
+        </NuxtLink>
+      </div>
 
-      <ClientOnly>
-        <LanguageSelector
-          class="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1 text-sm text-gray-900 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
-        />
-      </ClientOnly>
+      <div class="flex items-center space-x-4">
+        <ClientOnly>
+          <ThemeSwitcher />
+        </ClientOnly>
+
+        <ClientOnly>
+          <LanguageSelector />
+        </ClientOnly>
+      </div>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-const mounted = ref(false)
+import { ref, onMounted } from '#imports'
+
+const mounted = ref(false);
 
 onMounted(() => {
-  mounted.value = true
-})
+  mounted.value = true;
+});
 </script>
+
+<style scoped>
+</style>

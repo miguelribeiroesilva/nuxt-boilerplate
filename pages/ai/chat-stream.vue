@@ -1,8 +1,10 @@
 <template>
-  <main class="flex flex-col min-h-screen h-screen w-screen overflow-hidden bg-white dark:bg-gray-800">
-    <div class="flex-none p-1 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+  <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
+    <div class="flex items-center gap-2 w-full">
       <BackButton />
-      <Button label="Streaming Chat" severity="info" disabled />
+      <Button label="Streaming Chat" severity="info" disabled class="flex-1" />
+      <HelpDialog title="Streaming Chat" docPath="/docs/chat-stream" />
+      <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
     </div>
 
     <div class="flex-1 mt-4 overflow-hidden">
@@ -13,11 +15,7 @@
       </div>
 
       <div v-else class="space-y-4">
-        <MessagesArea
-          :messages="messages"
-          :is-loading="isLoading"
-          :hide-scrollbar="true"
-        />
+        <MessagesArea :messages="messages" :is-loading="isLoading" :hide-scrollbar="true" />
       </div>
 
       <!-- Loading indicator -->
@@ -42,21 +40,12 @@
     </div>
 
     <div class="flex-none p-1 border-t dark:border-gray-700">
-      <ChatInput
-        v-model="newMessage"
-        :is-loading="isLoading"
-        @send-message="sendMessage"
-      />
+      <ChatInput v-model="newMessage" :is-loading="isLoading" @send-message="sendMessage" />
     </div>
 
-    <ModelConfigSidebar
-      v-model="showSidebar"
-      :model="model"
-      :config="modelConfig"
-      :available-models="availableModels"
-      @update:config="updateConfig"
-    />
-  </main>
+    <ModelConfigSidebar v-model="showSidebar" :model="model" :config="modelConfig" :available-models="availableModels"
+      @update:config="updateConfig" position="right" />
+  </div>
 </template>
 
 <script setup lang="ts">

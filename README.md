@@ -1,6 +1,6 @@
-# Nuxt Boilerplate
+# AI Nuxt Boilerplate
 
-A ready to use Nuxt 3 boilerplate
+A ready to use Nuxt 3 boilerplate with AI capabilities
 
 **Live Demo**: https://nuxt-boilerplate-main.vercel.app/
 

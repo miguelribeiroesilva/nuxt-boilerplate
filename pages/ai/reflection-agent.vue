@@ -1,9 +1,9 @@
 <template>
   <div>
-    <Card class="mb-4">
+    <Card class="component-title">
       <template #content>
         <BackButton />
-        <Button label="Reflection Agent Demo" severity="info" disabled />
+        <Button label="Reflection Agent Demo" severity="info" disabled class="flex-1" />
       </template>
     </Card>
 
@@ -12,10 +12,7 @@
       <template #content>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <PerformanceMetrics :metrics="metrics" />
-          <AgentStrategy
-            v-model:maxReflections="maxReflections"
-            v-model:temperature="temperature"
-          />
+          <AgentStrategy v-model:maxReflections="maxReflections" v-model:temperature="temperature" />
         </div>
       </template>
     </Card>
@@ -24,54 +21,38 @@
       <template #title>Agent Interaction</template>
       <template #content>
         <div class="flex flex-col h-[600px]">
-          <MessagesArea
-            :messages="messages"
-            :is-loading="isLoading"
-            :hide-scrollbar="true"
-            class="flex-1"
-          />
+          <MessagesArea :messages="messages" :is-loading="isLoading" :hide-scrollbar="true" class="flex-1" />
           <div class="flex-none p-1 border-t dark:border-gray-700">
-            <ChatInput
-              v-model="userInput"
-              :is-loading="isLoading"
-              @send-message="handleSendMessage"
-              :placeholder="'Ask a question or describe a task...'"
-            />
+            <ChatInput v-model="userInput" :is-loading="isLoading" @send-message="handleSendMessage"
+              :placeholder="'Ask a question or describe a task...'" />
           </div>
         </div>
       </template>
     </Card>
 
-    <ApiKeyDialog
-      v-if="showApiKeyDialog"
-      @close="showApiKeyDialog = false"
-    />
+    <ApiKeyDialog v-if="showApiKeyDialog" @close="showApiKeyDialog = false" />
   </div>
 </template>
 
 <script setup lang="ts">
+import '@/assets/css/component-title.css';
 import { ref, watch, onMounted } from 'vue';
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { StructuredOutputParser } from '@langchain/core/output_parsers';
+import type { Message } from '~/composables/useAgentConfig';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 import BackButton from '~/components/BackButton.vue';
 import MessagesArea from './components/MessagesArea.vue';
 import ChatInput from './components/ChatInput.vue';
-import ApiKeyDialog from '~/components/ApiKeyDialog.vue';
+import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
 import PerformanceMetrics from './components/PerformanceMetrics.vue';
 import AgentStrategy from './components/AgentStrategy.vue';
 import { useAgentMetrics } from '~/composables/useAgentMetrics';
 import { useApiKeyValidation } from '~/composables/useApiKeyValidation';
-
-// Types
-interface Message {
-  role: 'user' | 'assistant' | 'error' | 'system';
-  content: string;
-}
 
 // Component state
 const messages = ref<Message[]>([]);
@@ -81,12 +62,24 @@ const maxReflections = ref(3);
 const temperature = ref(0.7);
 const showApiKeyDialog = ref(false);
 
+// Convert Langchain messages to our Message type
+function convertMessage(msg: HumanMessage | AIMessage | SystemMessage): Message {
+  if (msg instanceof HumanMessage) {
+    return { role: 'human', content: msg.content };
+  } else if (msg instanceof AIMessage) {
+    return { role: 'assistant', content: msg.content };
+  } else if (msg instanceof SystemMessage) {
+    return { role: 'human', content: msg.content }; // Map system to human
+  }
+  throw new Error('Unsupported message type');
+}
+
 // Get metrics from composable
-const { 
-  metrics, 
-  incrementTotal, 
-  incrementSuccesses, 
-  incrementReflections 
+const {
+  metrics,
+  incrementTotal,
+  incrementSuccesses,
+  incrementReflections
 } = useAgentMetrics();
 
 // API Key handling
@@ -148,86 +141,108 @@ confidence: Your confidence in the improved response (0-1)
 `);
 
 // Handle sending messages
-async function handleSendMessage() {
+const handleSendMessage = async () => {
   if (!userInput.value.trim() || isLoading.value) return;
 
-  // Check for API key
-  const apiKey = getStoredApiKey();
-  if (!apiKey) {
-    showApiKeyDialog.value = true;
-    return;
-  }
-
-  const question = userInput.value;
-  messages.value.push({
-    role: 'user',
-    content: question,
-  });
-
-  userInput.value = '';
-  isLoading.value = true;
-  incrementTotal();
-
   try {
-    // Ensure model is initialized
-    if (!model) {
-      const initialized = await initializeModel(apiKey);
-      if (!initialized) {
-        throw new Error('Failed to initialize model');
+    isLoading.value = true;
+
+    // Convert user input to a message and add to messages
+    const userMessage = new HumanMessage(userInput.value);
+    messages.value.push(convertMessage(userMessage));
+
+    // Prepare the conversation history
+    const conversationHistory = messages.value.map(msg => {
+      // Convert local Message type to LangChain message types
+      switch (msg.role) {
+        case 'user':
+          return new HumanMessage(msg.content);
+        case 'assistant':
+          return new AIMessage(msg.content);
+        case 'system':
+          return new SystemMessage(msg.content);
+        default:
+          return new HumanMessage(msg.content);
       }
+    });
+
+    // Check for API key
+    const apiKey = getStoredApiKey();
+    if (!apiKey) {
+      showApiKeyDialog.value = true;
+      return;
     }
 
-    // Get initial response
-    const response = await model!.invoke([
-      new SystemMessage(initialPrompt.template),
-      new HumanMessage(question)
-    ]);
+    const question = userInput.value;
+    userInput.value = '';
+    incrementTotal();
 
-    const parsedResponse = await responseParser.parse(response.content);
-    let currentResponse = parsedResponse;
-    let reflectionCount = 0;
+    try {
+      // Ensure model is initialized
+      if (!model) {
+        const initialized = await initializeModel(apiKey);
+        if (!initialized) {
+          throw new Error('Failed to initialize model');
+        }
+      }
 
-    // Reflection loop
-    while (reflectionCount < maxReflections.value && currentResponse.confidence < 0.9) {
-      reflectionCount++;
-      incrementReflections();
-
-      const reflection = await model!.invoke([
-        new SystemMessage(reflectionPrompt.template),
-        new HumanMessage(JSON.stringify({
-          question,
-          previous_response: currentResponse
-        }))
+      // Get initial response
+      const response = await model!.invoke([
+        new SystemMessage(initialPrompt.template),
+        ...conversationHistory
       ]);
 
-      const parsedReflection = await reflectionParser.parse(reflection.content);
-      
-      if (parsedReflection.evaluation === 'good') {
-        break;
+      const parsedResponse = await responseParser.parse(response.content);
+      let currentResponse = parsedResponse;
+      let reflectionCount = 0;
+
+      // Reflection loop
+      while (reflectionCount < maxReflections.value && currentResponse.confidence < 0.9) {
+        reflectionCount++;
+        incrementReflections();
+
+        const reflection = await model!.invoke([
+          new SystemMessage(reflectionPrompt.template),
+          ...conversationHistory,
+          new HumanMessage(JSON.stringify({
+            question,
+            previous_response: currentResponse
+          }))
+        ]);
+
+        const parsedReflection = await reflectionParser.parse(reflection.content);
+
+        if (parsedReflection.evaluation === 'good') {
+          break;
+        }
+
+        currentResponse = {
+          answer: parsedReflection.improvement,
+          confidence: parsedReflection.confidence,
+          reasoning: currentResponse.reasoning + '\n\nImproved after reflection: ' + parsedReflection.critique
+        };
       }
 
-      currentResponse = {
-        answer: parsedReflection.improvement,
-        confidence: parsedReflection.confidence,
-        reasoning: currentResponse.reasoning + '\n\nImproved after reflection: ' + parsedReflection.critique
-      };
+      // Add AI response to messages
+      const aiMessage = new AIMessage(
+        typeof currentResponse.answer === 'string'
+          ? currentResponse.answer
+          : JSON.stringify(currentResponse.answer)
+      );
+      messages.value.push(convertMessage(aiMessage));
+
+      incrementSuccesses();
+    } catch (error) {
+      console.error('Error:', error);
+      messages.value.push({
+        role: 'error',
+        content: 'An error occurred while processing your request.'
+      });
+    } finally {
+      isLoading.value = false;
     }
-
-    // Add final response to messages
-    messages.value.push({
-      role: 'assistant',
-      content: `Answer: ${currentResponse.answer}\n\nReasoning: ${currentResponse.reasoning}\n\nConfidence: ${currentResponse.confidence}`
-    });
-
-    incrementSuccesses();
   } catch (error) {
     console.error('Error:', error);
-    messages.value.push({
-      role: 'error',
-      content: 'An error occurred while processing your request.'
-    });
-  } finally {
-    isLoading.value = false;
   }
 }
 
@@ -253,3 +268,5 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped></style>

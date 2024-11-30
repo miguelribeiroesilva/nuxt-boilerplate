@@ -1,6 +1,7 @@
-export const useApiKeyValidation = () => {
+import { ref } from 'vue';
+
+export function useApiKeyValidation() {
   const error = ref<string | null>(null);
-  const runtimeConfig = useRuntimeConfig();
   const apiKeyStorage = 'openai_api_key';
 
   const validateApiKey = async (apiKey: string): Promise<boolean> => {
@@ -17,7 +18,7 @@ export const useApiKeyValidation = () => {
       });
 
       if (!response.ok) {
-        error.value = 'Invalid API key.';
+        error.value = 'Invalid API key. Please check and try again.';
         return false;
       }
 
@@ -26,25 +27,24 @@ export const useApiKeyValidation = () => {
       error.value = null;
       return true;
     } catch (e) {
-      error.value = 'Failed to initialize with the provided API key.';
+      console.error('API validation error:', e);
+      error.value = 'Failed to validate API key. Please check your internet connection and try again.';
       return false;
     }
   };
 
   const getStoredApiKey = (): string | null => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem(apiKeyStorage);
-  };
-
-  const clearApiKey = () => {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(apiKeyStorage);
+    try {
+      return localStorage.getItem(apiKeyStorage);
+    } catch (e) {
+      console.error('Error accessing localStorage:', e);
+      return null;
+    }
   };
 
   return {
     error,
     validateApiKey,
     getStoredApiKey,
-    clearApiKey
   };
-};
+}
