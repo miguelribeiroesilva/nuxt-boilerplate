@@ -79,24 +79,23 @@ export const useFirebase = () => {
 
   const formatTimestampString = (timestamp: Date | Timestamp | string | null): string => {
     if (!timestamp) return 'Just now';
-    
+
     // Convert to Date object if it's a Timestamp
-    const date = timestamp instanceof Timestamp 
-      ? timestamp.toDate() 
-      : (timestamp instanceof Date 
-        ? timestamp 
+    const date = timestamp instanceof Timestamp
+      ? timestamp.toDate()
+      : (timestamp instanceof Date
+        ? timestamp
         : new Date(timestamp));
-    
+
     // Check if date is valid
     if (isNaN(date.getTime())) return 'Invalid Date';
-    
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+
+    // Format date as yyyy-mm-dd
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   };
 
   // Test Firebase connection
@@ -140,6 +139,7 @@ export const useFirebase = () => {
     getCurrentUser,
     formatTimestamp,
     formatTimestampString,
+    Timestamp,
     configStatus,
     maskedConfig,
     formatKey,

@@ -2,12 +2,12 @@
     <header>
       <div class="flex items-center gap-2 w-full px-0">
         <BackButton />
-        <Button severity="info" disabled class="flex-1">Firestore CRUD Demo</Button>
+        <Button severity="info" disabled class="flex-1">Firestore CRUD</Button>
       </div>
     </header>
     <!-- Toolbar -->
     <div class="flex justify-between items-center my-4">
-      <h3 class="text-xl font-semibold">Users Collection</h3>
+      <h3 class="text-xl font-semibold">Users</h3>
       <Button @click="openNew" severity="success">
         <i class="pi pi-plus mr-2"></i>
         Add User
@@ -26,12 +26,17 @@
       filterDisplay="menu"
       :globalFilterFields="['name', 'email', 'role']"
       responsiveLayout="scroll"
+      class="p-datatable-compact p-datatable-sm"
     >
       <template #header>
-        <div class="flex justify-between">
-          <span class="p-input-icon-left">
+        <div class="flex justify-between items-center">
+          <span class="p-input-icon-right flex-grow">
+            <InputText
+              v-model="filters['global'].value"
+              placeholder="Search..."
+              class="w-1/3 mr-3"
+            />
             <i class="pi pi-search" />
-            <InputText v-model="filters['global'].value" placeholder="Search..." />
           </span>
         </div>
       </template>
@@ -59,7 +64,7 @@
 
       <Column field="createdAt" header="Created At" sortable>
         <template #body="{ data }">
-          {{ formatTimestamp(data.createdAt) }}
+          {{ formatTimestampString(data.createdAt) }}
         </template>
       </Column>
 
@@ -145,8 +150,15 @@
 <script setup lang="ts">
 import { FilterMatchMode } from 'primevue/api';
 import { Timestamp } from 'firebase/firestore';
+import Dialog from 'primevue/dialog';
+import Dropdown from 'primevue/dropdown';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import InputText from 'primevue/inputtext';
+import Button from 'primevue/button';
+import Tag from 'primevue/tag';
 
-const { formatTimestamp } = useFirebase();
+const { formatTimestampString } = useFirebase();
 const { getCollection, setDocument, updateDocument, deleteDocument } = useFirestore();
 const toast = useToast();
 
@@ -301,6 +313,33 @@ const deleteUser = async () => {
 onMounted(() => {
   loadUsers();
 });
-
-
 </script>
+
+<style scoped>
+.p-datatable .p-datatable-tbody > tr > td {
+  padding: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  padding: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.p-datatable .p-column-header-content {
+  font-size: 0.875rem;
+}
+
+.p-button.p-button-icon-only {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+}
+
+.p-button.p-button-icon-only .p-button-icon {
+  font-size: 1rem;
+}
+</style>
