@@ -1,10 +1,12 @@
 <template>
-  <div class="card">
-    <BackButton />
-    <Button severity="info" disabled class="flex-1">Firestore CRUD Demo</Button>
-
+    <header>
+      <div class="flex items-center gap-2 w-full px-0">
+        <BackButton />
+        <Button severity="info" disabled class="flex-1">Firestore CRUD Demo</Button>
+      </div>
+    </header>
     <!-- Toolbar -->
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center my-4">
       <h3 class="text-xl font-semibold">Users Collection</h3>
       <Button @click="openNew" severity="success">
         <i class="pi pi-plus mr-2"></i>
@@ -137,7 +139,7 @@
         <Button label="Yes" icon="pi pi-check" severity="danger" @click="deleteUser" />
       </template>
     </Dialog>
-  </div>
+
 </template>
 
 <script setup lang="ts">

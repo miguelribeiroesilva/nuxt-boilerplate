@@ -1,50 +1,58 @@
 <template>
-  <div>
-    <Card class="first-card">
-      <BackButton />
-      <Button label="Firebase Authentication" severity="info" disabled class="flex-1" />
+  <div
+    class="min-h-screen flex flex-col items-center justify-center p-4 dark:bg-gray-900 dark:text-white bg-white text-gray-900">
+    <div class="w-full max-w-md">
+      <header class="flex items-center gap-2 w-full mb-6">
+        <BackButton />
+        <Button label="Firebase Authentication" severity="info" disabled class="flex-1" />
+      </header>
+
       <!-- User Profile -->
-      <div v-if="currentUser" class="mb-8">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <Avatar :image="currentUser.photoURL || undefined" :label="getUserInitials" size="large" shape="circle" />
-            <div>
-              <h2 class="text-xl font-semibold">{{ currentUser.displayName || 'Anonymous User' }}</h2>
-              <p class="text-sm opacity-75">{{ currentUser.email }}</p>
+      <div v-if="currentUser" class="space-y-6 ">
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <Avatar :image="currentUser.photoURL || undefined" :label="getUserInitials" size="large" shape="circle"
+                class="border-2 border-primary-500" />
+              <div>
+                <h2 class="text-xl font-semibold">{{ currentUser.displayName || 'Anonymous User' }}</h2>
+                <p class="text-sm opacity-75">{{ currentUser.email }}</p>
+              </div>
             </div>
+            <Button @click="signOut" class="p-button-danger" severity="danger" text>
+              <i class="pi pi-sign-out mr-2"></i>
+              Sign Out
+            </Button>
           </div>
-          <Button @click="signOut" class="p-button p-component p-button-primary mr-2" severity="danger" text>
-            <i class="pi pi-sign-out mr-2"></i>
-            Sign Out
-          </Button>
         </div>
 
         <!-- User Details -->
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-            <h3 class="font-medium mb-2">Email Verification</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-100 dark:bg-gray-800">
+          <div class="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md p-4">
+            <h3 class="font-medium mb-3">Email Verification</h3>
             <div class="flex items-center justify-between">
               <span>Status</span>
-              <Tag :severity="currentUser.emailVerified ? 'success' : 'warning'">
+              <Tag :severity="currentUser.emailVerified ? 'success' : 'warning'" class="px-3 py-1">
                 {{ currentUser.emailVerified ? 'Verified' : 'Not Verified' }}
               </Tag>
             </div>
-            <Button v-if="!currentUser.emailVerified" @click="sendVerificationEmail"
-              class="p-button p-component p-button-primary mr-2 mt-3" severity="info" text>
+            <Button v-if="!currentUser.emailVerified" @click="sendVerificationEmail" class="mt-3 w-full" severity="info"
+              text>
               Send Verification Email
             </Button>
           </div>
 
-          <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
+          <div class="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md p-4">
             <h3 class="font-medium mb-2">Account Created</h3>
             <p>{{ formatTimestampString(currentUser.metadata.creationTime) }}</p>
-            <p class="text-sm opacity-75 mt-1">Last Sign In: {{
-              formatTimestampString(currentUser.metadata.lastSignInTime) }}</p>
+            <p class="text-sm opacity-75 mt-1">
+              Last Sign In: {{ formatTimestampString(currentUser.metadata.lastSignInTime) }}
+            </p>
           </div>
         </div>
 
         <!-- Profile Update -->
-        <div class="mt-6">
+        <div class="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md p-4">
           <h3 class="text-lg font-semibold mb-4">Update Profile</h3>
           <div class="flex gap-4">
             <div class="flex-1">
@@ -53,8 +61,7 @@
                 <label for="displayName">Display Name</label>
               </span>
             </div>
-            <Button @click="updateProfile" :loading="updating" class="p-button p-component p-button-primary mr-2"
-              severity="success">
+            <Button @click="updateProfile" :loading="updating" severity="success">
               Update Profile
             </Button>
           </div>
@@ -62,33 +69,32 @@
       </div>
 
       <!-- Authentication Methods -->
-      <div v-else>
-        <!-- Auth Tabs -->
-        <TabView>
+      <div v-else class="bg-gray-100 dark:bg-gray-800">
+        <TabView class="bg-gray-100 dark:bg-gray-800">
           <!-- Sign In Tab -->
-          <TabPanel header="Sign In">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TabPanel header="Sign In" class="bg-gray-100 dark:bg-gray-800">
+            <div class="gap-4 bg-gray-100 dark:bg-gray-800">
               <!-- Email/Password Sign In -->
-              <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-                <Button severity="info" disabled class="flex-1" />
+              <div class="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md p-4">
+                <Button label="Email/Password Sign In" severity="info" disabled class="flex-1 mb-4 w-full" />
                 <form @submit.prevent="handleEmailSignIn" class="space-y-4">
-                  <div class="p-float-label">
+                  <div>
+                    <label for="email" class="text-xs">Email</label>
                     <InputText id="email" v-model="emailAuth.email" type="email" class="w-full"
                       :class="{ 'p-invalid': submitted && !emailAuth.email }" />
-                    <label for="email">Email</label>
                   </div>
-                  <div class="p-float-label">
+                  <div>
+                    <label for="password" class="text-xs">Password</label>
                     <Password id="password" v-model="emailAuth.password" :feedback="false" class="w-full"
                       :class="{ 'p-invalid': submitted && !emailAuth.password }" toggleMask />
-                    <label for="password">Password</label>
                   </div>
                   <div class="flex items-center justify-between">
-                    <Button type="submit" :loading="loading" class="p-button p-component p-button-primary mr-2"
-                      severity="primary">
+                    <Button type="submit" :loading="loading" severity="primary" class="w-full">
                       Sign In
                     </Button>
-                    <Button type="button" @click="showForgotPassword = true"
-                      class="p-button p-component p-button-primary mr-2" text size="small">
+                  </div>
+                  <div class="text-center">
+                    <Button type="button" @click="showForgotPassword = true" text size="small">
                       Forgot Password?
                     </Button>
                   </div>
@@ -96,21 +102,18 @@
               </div>
 
               <!-- Social Sign In -->
-              <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-                <h3>Social Sign In</h3>
+              <div class="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md p-4">
+                <Button label="Social Sign with" severity="info" disabled class="flex-1 mb-4 w-full" />
                 <div class="space-y-3">
-                  <Button @click="signInWithGoogle"
-                    class="p-button p-component p-button-primary mr-2 w-full justify-center" severity="secondary">
+                  <Button @click="signInWithGoogle" class="w-full justify-center" severity="secondary">
                     <i class="pi pi-google mr-2"></i>
-                    Continue with Google
+                    Google
                   </Button>
-                  <Button @click="signInWithGithub"
-                    class="p-button p-component p-button-primary mr-2 w-full justify-center" severity="secondary">
+                  <Button @click="signInWithGithub" class="w-full justify-center" severity="secondary">
                     <i class="pi pi-github mr-2"></i>
-                    Continue with GitHub
+                    GitHub
                   </Button>
-                  <Button @click="signInAnonymously"
-                    class="p-button p-component p-button-primary mr-2 w-full justify-center" severity="info" text>
+                  <Button @click="signInAnonymously" class="w-full justify-center" severity="info" text>
                     <i class="pi pi-user mr-2"></i>
                     Continue Anonymously
                   </Button>
@@ -121,34 +124,33 @@
 
           <!-- Sign Up Tab -->
           <TabPanel header="Sign Up">
-            <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-              <h3>Create Account</h3>
+            <div class="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md p-4">
+              <Button label="Create Account" severity="info" disabled class="flex-1 mb-4 w-full" />
               <form @submit.prevent="handleSignUp" class="space-y-4">
-                <div class="p-float-label">
+                <div>
+                  <label for="signupName" class="text-xs">Full Name</label>
                   <InputText id="signupName" v-model="signupForm.name" class="w-full"
                     :class="{ 'p-invalid': signupSubmitted && !signupForm.name }" />
-                  <label for="signupName">Full Name</label>
                 </div>
-                <div class="p-float-label">
+                <div>
+                  <label for="signupEmail" class="text-xs">Email</label>
                   <InputText id="signupEmail" v-model="signupForm.email" type="email" class="w-full"
                     :class="{ 'p-invalid': signupSubmitted && !signupForm.email }" />
-                  <label for="signupEmail">Email</label>
                 </div>
-                <div class="p-float-label">
+                <div>
+                  <label for="signupPassword" class="text-xs">Password</label>
                   <Password id="signupPassword" v-model="signupForm.password" class="w-full"
                     :class="{ 'p-invalid': signupSubmitted && !signupForm.password }" :feedback="true" toggleMask />
-                  <label for="signupPassword">Password</label>
                 </div>
-                <div class="p-float-label">
+                <div>
+                  <label for="confirmPassword" class="text-xs">Confirm Password</label>
                   <Password id="confirmPassword" v-model="signupForm.confirmPassword" class="w-full"
                     :class="{ 'p-invalid': signupSubmitted && !passwordsMatch }" :feedback="false" toggleMask />
-                  <label for="confirmPassword">Confirm Password</label>
                 </div>
-                <small class="text-red-500" v-if="signupSubmitted && !passwordsMatch">
+                <small v-if="signupSubmitted && !passwordsMatch" class="text-red-500 block text-center">
                   Passwords do not match
                 </small>
-                <Button type="submit" :loading="loading" class="p-button p-component p-button-primary mr-2 w-full"
-                  severity="primary">
+                <Button type="submit" :loading="loading" severity="primary" class="w-full mt-4">
                   Create Account
                 </Button>
               </form>
@@ -156,15 +158,14 @@
           </TabPanel>
         </TabView>
       </div>
-    </Card>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import 'primevue/resources/themes/aura-light-green/theme.css'
-import 'primevue/resources/primevue.min.css'
-import 'primeicons/primeicons.css'
-import Card from 'primevue/card';
+// import 'primevue/resources/themes/aura-light-green/theme.css'
+// import 'primevue/resources/primevue.min.css'
+// import 'primeicons/primeicons.css'
 import Avatar from 'primevue/avatar';
 import Password from 'primevue/password';
 import TabView from 'primevue/tabview';
@@ -429,5 +430,3 @@ watch(authError, (error: any) => {
 // Set page metadata
 
 </script>
-
-

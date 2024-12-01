@@ -1,11 +1,12 @@
 <template>
   <div>
-    <Card class="first-card">
-      <template #content>
+    <header>
+      <div class="flex items-center gap-2 w-full px-0">
         <BackButton />
         <Button label="Firebase Storage" severity="info" disabled class="flex-1" />
-      </template>
-    </Card>
+      </div>
+    </header>
+
     <Card>
       <template #title>Upload Files</template>
       <template #content>
@@ -19,8 +20,8 @@
           <!-- File Input -->
           <div class="space-y-1">
             <label class="block text-sm font-medium">File</label>
-            <FileUpload mode="basic" :auto="true" chooseLabel="Choose File" @select="onFileSelect" :maxFileSize="10000000"
-              accept="image/*,.pdf,.doc,.docx" />
+            <FileUpload mode="basic" :auto="true" chooseLabel="Choose File" @select="onFileSelect"
+              :maxFileSize="10000000" accept="image/*,.pdf,.doc,.docx" />
             <small class="text-xs text-gray-500 dark:text-gray-400">
               Max file size: 10MB. Supported formats: Images, PDF, DOC
             </small>
@@ -339,5 +340,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

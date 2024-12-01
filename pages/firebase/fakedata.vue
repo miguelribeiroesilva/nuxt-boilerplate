@@ -1,8 +1,11 @@
 <template>
-  <div class="card">
-    <BackButton />
-    <Button severity="info" disabled class="flex-1">Data Import</Button>
-
+  <div>
+    <header>
+      <div class="flex items-center gap-2 w-full px-0">
+        <BackButton />
+        <Button severity="info" disabled class="flex-1">Data Import</Button>
+      </div>
+    </header>
     <!-- Import Form -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <!-- Collection Selection -->
@@ -13,15 +16,9 @@
             <!-- Collection Type -->
             <div class="p-field">
               <label class="block text-sm font-medium mb-1">Collection Type</label>
-              <Dropdown
-                v-model="importForm.collectionType"
-                :options="collectionTypes"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Select Collection"
-                class="w-full"
-                :class="{ 'p-invalid': submitted && !importForm.collectionType }"
-              />
+              <Dropdown v-model="importForm.collectionType" :options="collectionTypes" optionLabel="label"
+                optionValue="value" placeholder="Select Collection" class="w-full"
+                :class="{ 'p-invalid': submitted && !importForm.collectionType }" />
               <small v-if="submitted && !importForm.collectionType" class="p-error">
                 Collection type is required
               </small>
@@ -30,13 +27,8 @@
             <!-- Number of Records -->
             <div class="p-field">
               <label class="block text-sm font-medium mb-1">Number of Records</label>
-              <InputNumber
-                v-model="importForm.count"
-                :min="1"
-                :max="100"
-                class="w-full"
-                :class="{ 'p-invalid': submitted && !importForm.count }"
-              />
+              <InputNumber v-model="importForm.count" :min="1" :max="100" class="w-full"
+                :class="{ 'p-invalid': submitted && !importForm.count }" />
               <small v-if="submitted && !importForm.count" class="p-error">
                 Number of records is required
               </small>
@@ -44,21 +36,13 @@
 
             <!-- Include Images -->
             <div class="p-field-checkbox">
-              <Checkbox
-                v-model="importForm.includeImages"
-                :binary="true"
-                inputId="includeImages"
-              />
+              <Checkbox v-model="importForm.includeImages" :binary="true" inputId="includeImages" />
               <label for="includeImages" class="ml-2">Include Images</label>
             </div>
 
             <!-- Clear Existing -->
             <div class="p-field-checkbox">
-              <Checkbox
-                v-model="importForm.clearExisting"
-                :binary="true"
-                inputId="clearExisting"
-              />
+              <Checkbox v-model="importForm.clearExisting" :binary="true" inputId="clearExisting" />
               <label for="clearExisting" class="ml-2">Clear Existing Data</label>
               <small class="block text-yellow-500 dark:text-yellow-400 mt-1" v-if="importForm.clearExisting">
                 Warning: This will delete all existing data in the selected collection
@@ -66,12 +50,7 @@
             </div>
           </div>
 
-          <Button
-            type="submit"
-            :loading="importing"
-            severity="primary"
-            class="w-full"
-          >
+          <Button type="submit" :loading="importing" severity="primary" class="w-full">
             Import Data
           </Button>
         </form>
@@ -94,10 +73,7 @@
     <!-- Import Progress -->
     <div v-if="importProgress.total > 0" class="mb-6">
       <h3 class="font-semibold mb-2">Import Progress</h3>
-      <ProgressBar
-        :value="(importProgress.current / importProgress.total) * 100"
-        :showValue="true"
-      />
+      <ProgressBar :value="(importProgress.current / importProgress.total) * 100" :showValue="true" />
       <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
         Imported {{ importProgress.current }} of {{ importProgress.total }} records
       </div>
@@ -122,14 +98,7 @@
       </div>
 
       <!-- Data Table -->
-      <DataTable
-        v-else
-        :value="importHistory"
-        :paginator="true"
-        :rows="5"
-        stripedRows
-        class="p-datatable-sm"
-      >
+      <DataTable v-else :value="importHistory" :paginator="true" :rows="5" stripedRows class="p-datatable-sm">
         <Column field="timestamp" header="Date" sortable>
           <template #body="{ data }">
             {{ new Date(data.timestamp).toLocaleString() }}
@@ -313,9 +282,7 @@ const handleImport = async () => {
     submitted.value = false
   }
 }
-definePageMeta({
-  layout: "fullscreen"
-});
+
 </script>
 
 <style scoped>
@@ -323,5 +290,4 @@ pre {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
-
 </style>

@@ -1,6 +1,5 @@
 <template>
   <BlogLayout>
-    <template #title>{{ post?.title }}</template>
     <ContentRenderer :value="post" />
   </BlogLayout>
 </template>
