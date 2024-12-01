@@ -69,11 +69,11 @@
       </div>
 
       <!-- Authentication Methods -->
-      <div v-else class="bg-gray-100 dark:bg-gray-800">
-        <TabView class="bg-gray-100 dark:bg-gray-800">
+      <div v-else>
+        <TabView>
           <!-- Sign In Tab -->
-          <TabPanel header="Sign In" class="bg-gray-100 dark:bg-gray-800">
-            <div class="gap-4 bg-gray-100 dark:bg-gray-800">
+          <TabPanel header="Sign In">
+            <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
               <!-- Email/Password Sign In -->
               <div class="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md p-4">
                 <Button label="Email/Password Sign In" severity="info" disabled class="flex-1 mb-4 w-full" />
@@ -124,7 +124,7 @@
 
           <!-- Sign Up Tab -->
           <TabPanel header="Sign Up">
-            <div class="bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md p-4">
+            <div class="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
               <Button label="Create Account" severity="info" disabled class="flex-1 mb-4 w-full" />
               <form @submit.prevent="handleSignUp" class="space-y-4">
                 <div>
@@ -204,6 +204,11 @@ const resetSubmitted = ref(false);
 const showForgotPassword = ref(false);
 const resetting = ref(false);
 
+// Profile update state
+const profile = ref({
+  displayName: currentUser.value?.displayName || ''
+});
+
 // Form state
 const emailAuth = ref({
   email: '',
@@ -218,10 +223,6 @@ const signupForm = ref({
 });
 
 const resetEmail = ref('');
-
-const profile = ref({
-  displayName: ''
-});
 
 // Computed
 const passwordsMatch = computed(() =>
@@ -415,6 +416,32 @@ const signOut = async () => {
   }
 };
 
+const sendVerificationEmail = async () => {
+  if (!currentUser.value) return;
+  try {
+    loading.value = true;
+    await sendEmailVerification(currentUser.value);
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Verification email sent', life: 3000 });
+  } catch (error: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.message, life: 3000 });
+  } finally {
+    loading.value = false;
+  }
+};
+
+const updateProfile = async () => {
+  if (!currentUser.value) return;
+  try {
+    updating.value = true;
+    await updateUserProfile({ displayName: profile.value.displayName });
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Profile updated', life: 3000 });
+  } catch (error: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.message, life: 3000 });
+  } finally {
+    updating.value = false;
+  }
+};
+
 // Watch for auth errors
 watch(authError, (error: any) => {
   if (error) {
@@ -424,6 +451,13 @@ watch(authError, (error: any) => {
       detail: error,
       life: 3000
     });
+  }
+});
+
+// Watch currentUser to update profile state
+watch(currentUser, (user) => {
+  if (user) {
+    profile.value.displayName = user.displayName || '';
   }
 });
 
