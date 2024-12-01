@@ -1,5 +1,6 @@
 <script setup lang="ts">
-// import { useRouter } from '#imports'
+import Button from 'primevue/button'
+import { useRouter } from '#imports'
 
 const router = useRouter();
 </script>

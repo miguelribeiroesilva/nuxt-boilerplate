@@ -1,4 +1,5 @@
 <template>
+  <ClientOnly>
   <div class="card">
     <BackButton />
     <Button severity="info" disabled class="flex-1">Firebase</Button>
@@ -64,9 +65,12 @@ FIREBASE_APP_ID=your-app-id</pre>
       </div>
     </div>
   </div>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
+import Button from 'primevue/button'
+
 const toast = useToast();
 const {
   configStatus,
@@ -86,6 +90,4 @@ const handleTestConnection = async () => {
     life: 3000
   });
 };
-
-
 </script>

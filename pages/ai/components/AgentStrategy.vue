@@ -30,6 +30,9 @@
 </template>
 
 <script setup lang="ts">
+import InputNumber from 'primevue/inputnumber';
+import Slider from 'primevue/slider';
+
 defineProps<{
   maxReflections: number;
   temperature: number;

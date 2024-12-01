@@ -1,238 +1,177 @@
 <template>
   <div>
     <Card class="first-card">
-    <BackButton />
-    <Button label="Firebase Authentication" severity="info" disabled class="flex-1" />
-    <!-- User Profile -->
-    <div v-if="currentUser" class="mb-8">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <Avatar :image="currentUser.photoURL || undefined" :label="getUserInitials" size="large" shape="circle" />
-          <div>
-            <h2 class="text-xl font-semibold">{{ currentUser.displayName || 'Anonymous User' }}</h2>
-            <p class="text-sm opacity-75">{{ currentUser.email }}</p>
+      <BackButton />
+      <Button label="Firebase Authentication" severity="info" disabled class="flex-1" />
+      <!-- User Profile -->
+      <div v-if="currentUser" class="mb-8">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <Avatar :image="currentUser.photoURL || undefined" :label="getUserInitials" size="large" shape="circle" />
+            <div>
+              <h2 class="text-xl font-semibold">{{ currentUser.displayName || 'Anonymous User' }}</h2>
+              <p class="text-sm opacity-75">{{ currentUser.email }}</p>
+            </div>
           </div>
-        </div>
-        <Button @click="signOut" class="p-button p-component p-button-primary mr-2" severity="danger" text>
-          <i class="pi pi-sign-out mr-2"></i>
-          Sign Out
-        </Button>
-      </div>
-
-      <!-- User Details -->
-      <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-          <h3 class="font-medium mb-2">Email Verification</h3>
-          <div class="flex items-center justify-between">
-            <span>Status</span>
-            <Tag :severity="currentUser.emailVerified ? 'success' : 'warning'">
-              {{ currentUser.emailVerified ? 'Verified' : 'Not Verified' }}
-            </Tag>
-          </div>
-          <Button
-            v-if="!currentUser.emailVerified"
-            @click="sendVerificationEmail"
-            class="p-button p-component p-button-primary mr-2 mt-3"
-            severity="info"
-            text
-          >
-            Send Verification Email
+          <Button @click="signOut" class="p-button p-component p-button-primary mr-2" severity="danger" text>
+            <i class="pi pi-sign-out mr-2"></i>
+            Sign Out
           </Button>
         </div>
 
-        <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-          <h3 class="font-medium mb-2">Account Created</h3>
-          <p>{{ formatTimestampString(currentUser.metadata.creationTime) }}</p>
-          <p class="text-sm opacity-75 mt-1">Last Sign In: {{ formatTimestampString(currentUser.metadata.lastSignInTime) }}</p>
-        </div>
-      </div>
-
-      <!-- Profile Update -->
-      <div class="mt-6">
-        <h3 class="text-lg font-semibold mb-4">Update Profile</h3>
-        <div class="flex gap-4">
-          <div class="flex-1">
-            <span class="p-float-label">
-              <InputText
-                id="displayName"
-                v-model="profile.displayName"
-                class="w-full"
-              />
-              <label for="displayName">Display Name</label>
-            </span>
+        <!-- User Details -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
+            <h3 class="font-medium mb-2">Email Verification</h3>
+            <div class="flex items-center justify-between">
+              <span>Status</span>
+              <Tag :severity="currentUser.emailVerified ? 'success' : 'warning'">
+                {{ currentUser.emailVerified ? 'Verified' : 'Not Verified' }}
+              </Tag>
+            </div>
+            <Button v-if="!currentUser.emailVerified" @click="sendVerificationEmail"
+              class="p-button p-component p-button-primary mr-2 mt-3" severity="info" text>
+              Send Verification Email
+            </Button>
           </div>
-          <Button
-            @click="updateProfile"
-            :loading="updating"
-            class="p-button p-component p-button-primary mr-2"
-            severity="success"
-          >
-            Update Profile
-          </Button>
+
+          <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
+            <h3 class="font-medium mb-2">Account Created</h3>
+            <p>{{ formatTimestampString(currentUser.metadata.creationTime) }}</p>
+            <p class="text-sm opacity-75 mt-1">Last Sign In: {{
+              formatTimestampString(currentUser.metadata.lastSignInTime) }}</p>
+          </div>
+        </div>
+
+        <!-- Profile Update -->
+        <div class="mt-6">
+          <h3 class="text-lg font-semibold mb-4">Update Profile</h3>
+          <div class="flex gap-4">
+            <div class="flex-1">
+              <span class="p-float-label">
+                <InputText id="displayName" v-model="profile.displayName" class="w-full" />
+                <label for="displayName">Display Name</label>
+              </span>
+            </div>
+            <Button @click="updateProfile" :loading="updating" class="p-button p-component p-button-primary mr-2"
+              severity="success">
+              Update Profile
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Authentication Methods -->
-    <div v-else>
-      <!-- Auth Tabs -->
-      <TabView>
-        <!-- Sign In Tab -->
-        <TabPanel header="Sign In">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Email/Password Sign In -->
+      <!-- Authentication Methods -->
+      <div v-else>
+        <!-- Auth Tabs -->
+        <TabView>
+          <!-- Sign In Tab -->
+          <TabPanel header="Sign In">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Email/Password Sign In -->
+              <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
+                <Button severity="info" disabled class="flex-1" />
+                <form @submit.prevent="handleEmailSignIn" class="space-y-4">
+                  <div class="p-float-label">
+                    <InputText id="email" v-model="emailAuth.email" type="email" class="w-full"
+                      :class="{ 'p-invalid': submitted && !emailAuth.email }" />
+                    <label for="email">Email</label>
+                  </div>
+                  <div class="p-float-label">
+                    <Password id="password" v-model="emailAuth.password" :feedback="false" class="w-full"
+                      :class="{ 'p-invalid': submitted && !emailAuth.password }" toggleMask />
+                    <label for="password">Password</label>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <Button type="submit" :loading="loading" class="p-button p-component p-button-primary mr-2"
+                      severity="primary">
+                      Sign In
+                    </Button>
+                    <Button type="button" @click="showForgotPassword = true"
+                      class="p-button p-component p-button-primary mr-2" text size="small">
+                      Forgot Password?
+                    </Button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Social Sign In -->
+              <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
+                <h3>Social Sign In</h3>
+                <div class="space-y-3">
+                  <Button @click="signInWithGoogle"
+                    class="p-button p-component p-button-primary mr-2 w-full justify-center" severity="secondary">
+                    <i class="pi pi-google mr-2"></i>
+                    Continue with Google
+                  </Button>
+                  <Button @click="signInWithGithub"
+                    class="p-button p-component p-button-primary mr-2 w-full justify-center" severity="secondary">
+                    <i class="pi pi-github mr-2"></i>
+                    Continue with GitHub
+                  </Button>
+                  <Button @click="signInAnonymously"
+                    class="p-button p-component p-button-primary mr-2 w-full justify-center" severity="info" text>
+                    <i class="pi pi-user mr-2"></i>
+                    Continue Anonymously
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </TabPanel>
+
+          <!-- Sign Up Tab -->
+          <TabPanel header="Sign Up">
             <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-              <Button severity="info" disabled class="flex-1"/>
-              <form @submit.prevent="handleEmailSignIn" class="space-y-4">
+              <h3>Create Account</h3>
+              <form @submit.prevent="handleSignUp" class="space-y-4">
                 <div class="p-float-label">
-                  <InputText
-                    id="email"
-                    v-model="emailAuth.email"
-                    type="email"
-                    class="w-full"
-                    :class="{ 'p-invalid': submitted && !emailAuth.email }"
-                  />
-                  <label for="email">Email</label>
+                  <InputText id="signupName" v-model="signupForm.name" class="w-full"
+                    :class="{ 'p-invalid': signupSubmitted && !signupForm.name }" />
+                  <label for="signupName">Full Name</label>
                 </div>
                 <div class="p-float-label">
-                  <Password
-                    id="password"
-                    v-model="emailAuth.password"
-                    :feedback="false"
-                    class="w-full"
-                    :class="{ 'p-invalid': submitted && !emailAuth.password }"
-                    toggleMask
-                  />
-                  <label for="password">Password</label>
+                  <InputText id="signupEmail" v-model="signupForm.email" type="email" class="w-full"
+                    :class="{ 'p-invalid': signupSubmitted && !signupForm.email }" />
+                  <label for="signupEmail">Email</label>
                 </div>
-                <div class="flex items-center justify-between">
-                  <Button
-                    type="submit"
-                    :loading="loading"
-                    class="p-button p-component p-button-primary mr-2"
-                    severity="primary"
-                  >
-                    Sign In
-                  </Button>
-                  <Button
-                    type="button"
-                    @click="showForgotPassword = true"
-                    class="p-button p-component p-button-primary mr-2"
-                    text
-                    size="small"
-                  >
-                    Forgot Password?
-                  </Button>
+                <div class="p-float-label">
+                  <Password id="signupPassword" v-model="signupForm.password" class="w-full"
+                    :class="{ 'p-invalid': signupSubmitted && !signupForm.password }" :feedback="true" toggleMask />
+                  <label for="signupPassword">Password</label>
                 </div>
+                <div class="p-float-label">
+                  <Password id="confirmPassword" v-model="signupForm.confirmPassword" class="w-full"
+                    :class="{ 'p-invalid': signupSubmitted && !passwordsMatch }" :feedback="false" toggleMask />
+                  <label for="confirmPassword">Confirm Password</label>
+                </div>
+                <small class="text-red-500" v-if="signupSubmitted && !passwordsMatch">
+                  Passwords do not match
+                </small>
+                <Button type="submit" :loading="loading" class="p-button p-component p-button-primary mr-2 w-full"
+                  severity="primary">
+                  Create Account
+                </Button>
               </form>
             </div>
-
-            <!-- Social Sign In -->
-            <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-              <h3>Social Sign In</h3>
-              <div class="space-y-3">
-                <Button
-                  @click="signInWithGoogle"
-                  class="p-button p-component p-button-primary mr-2 w-full justify-center"
-                  severity="secondary"
-                >
-                  <i class="pi pi-google mr-2"></i>
-                  Continue with Google
-                </Button>
-                <Button
-                  @click="signInWithGithub"
-                  class="p-button p-component p-button-primary mr-2 w-full justify-center"
-                  severity="secondary"
-                >
-                  <i class="pi pi-github mr-2"></i>
-                  Continue with GitHub
-                </Button>
-                <Button
-                  @click="signInAnonymously"
-                  class="p-button p-component p-button-primary mr-2 w-full justify-center"
-                  severity="info"
-                  text
-                >
-                  <i class="pi pi-user mr-2"></i>
-                  Continue Anonymously
-                </Button>
-              </div>
-            </div>
-          </div>
-        </TabPanel>
-
-        <!-- Sign Up Tab -->
-        <TabPanel header="Sign Up">
-          <div class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
-            <h3>Create Account</h3>
-            <form @submit.prevent="handleSignUp" class="space-y-4">
-              <div class="p-float-label">
-                <InputText
-                  id="signupName"
-                  v-model="signupForm.name"
-                  class="w-full"
-                  :class="{ 'p-invalid': signupSubmitted && !signupForm.name }"
-                />
-                <label for="signupName">Full Name</label>
-              </div>
-              <div class="p-float-label">
-                <InputText
-                  id="signupEmail"
-                  v-model="signupForm.email"
-                  type="email"
-                  class="w-full"
-                  :class="{ 'p-invalid': signupSubmitted && !signupForm.email }"
-                />
-                <label for="signupEmail">Email</label>
-              </div>
-              <div class="p-float-label">
-                <Password
-                  id="signupPassword"
-                  v-model="signupForm.password"
-                  class="w-full"
-                  :class="{ 'p-invalid': signupSubmitted && !signupForm.password }"
-                  :feedback="true"
-                  toggleMask
-                />
-                <label for="signupPassword">Password</label>
-              </div>
-              <div class="p-float-label">
-                <Password
-                  id="confirmPassword"
-                  v-model="signupForm.confirmPassword"
-                  class="w-full"
-                  :class="{ 'p-invalid': signupSubmitted && !passwordsMatch }"
-                  :feedback="false"
-                  toggleMask
-                />
-                <label for="confirmPassword">Confirm Password</label>
-              </div>
-              <small class="text-red-500" v-if="signupSubmitted && !passwordsMatch">
-                Passwords do not match
-              </small>
-              <Button
-                type="submit"
-                :loading="loading"
-                class="p-button p-component p-button-primary mr-2 w-full"
-                severity="primary"
-              >
-                Create Account
-              </Button>
-            </form>
-          </div>
-        </TabPanel>
-      </TabView>
-    </div>
-  </Card>
+          </TabPanel>
+        </TabView>
+      </div>
+    </Card>
   </div>
 </template>
 
 <script setup lang="ts">
-import '@/assets/css/component-title.css';
-import { Card } from 'primevue/card';
-import { Avatar } from 'primevue/avatar';
-import { Password } from 'primevue/password';
-import { TabView, TabPanel } from 'primevue/tabview';
+import 'primevue/resources/themes/aura-light-green/theme.css'
+import 'primevue/resources/primevue.min.css'
+import 'primeicons/primeicons.css'
+import Card from 'primevue/card';
+import Avatar from 'primevue/avatar';
+import Password from 'primevue/password';
+import TabView from 'primevue/tabview';
+import TabPanel from 'primevue/tabpanel';
+import InputText from 'primevue/inputtext';
+import Button from 'primevue/button';
+import Tag from 'primevue/tag';
 import {
   GithubAuthProvider,
   signInWithPopup,
@@ -324,9 +263,9 @@ const handleSignUp = async () => {
   signupSubmitted.value = true;
 
   if (!signupForm.value.name ||
-      !signupForm.value.email ||
-      !signupForm.value.password ||
-      !passwordsMatch.value) {
+    !signupForm.value.email ||
+    !signupForm.value.password ||
+    !passwordsMatch.value) {
     return;
   }
 
@@ -491,5 +430,4 @@ watch(authError, (error: any) => {
 
 </script>
 
-<style scoped>
-</style>
+

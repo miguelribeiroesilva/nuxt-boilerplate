@@ -1,33 +1,49 @@
 <template>
-  <div class="card">
-    <Menubar
-      :model="items"
-      class="bg-transparent border-none"
-    >
-        <template #item="{ item, props, hasSubmenu, root }">
-        <a v-ripple class="flex align-items-center" v-bind="props.action">
-            <span :class="item.icon" />
-            <span class="ml-2">{{ item.label }}</span>
-            <Badge v-if="item.badge" :class="{ 'ml-auto': !root, 'ml-2': root }" :value="item.badge" />
-            <span v-if="item.shortcut" class="ml-auto border-1 surface-border border-round surface-100 text-xs p-1">{{ item.shortcut }}</span>
-            <i v-if="hasSubmenu" :class="['pi pi-angle-down', { 'pi-angle-down ml-2': root, 'pi-angle-right ml-auto': !root }]"></i>
-        </a>
+  <Menubar
+    :model="items"
+    class="dark:bg-gray-900 dark:text-white bg-white text-gray-900"
+  >
+    <template #item="{ item, props, root }">
+      <a v-ripple class="flex align-items-center dark:bg-gray-900 dark:text-white bg-white text-gray-900" v-bind="props.action">
+        <span :class="item.icon"></span>
+        <span class="ml-2  dark:bg-gray-900 dark:text-white bg-white text-gray-900">{{ item.label }}</span>
+        <Badge
+          v-if="item.badge"
+          :class="{ 'ml-auto': !root, 'ml-2': root }"
+          :value="item.badge"
+        />
+      </a>
     </template>
-    </Menubar>
-  </div>
+  </Menubar>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import type { MenuItem } from 'primevue/menuitem';
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import type { MenuItem } from 'primevue/menuitem'
+import Badge from 'primevue/badge'
+import Menubar from 'primevue/menubar'
 
-const router = useRouter();
+
+const colorMode = useColorMode()
+
+const router = useRouter()
 
 const navigateTo = (route: string) => {
-  router.push(route);
-};
+  router.push(route)
+}
 
+// Computed property for dynamic classes with SSR-safe approach
+// const menubarClasses = computed(() => {
+//   // Use a non-reactive check to prevent SSR hydration issues
+//   if (import.meta.server) return {}
+//   return {
+//     'dark:bg-gray-900 dark:text-white': colorMode.preference === 'dark',
+//     'bg-white text-gray-900': colorMode.preference === 'light'
+//   }
+// })
+
+// Reactive items with type annotation
 const items = ref<MenuItem[]>([
   {
     label: 'Home',
@@ -54,22 +70,22 @@ const items = ref<MenuItem[]>([
         icon: 'pi pi-bolt',
         command: () => navigateTo('/ai/chat-stream')
       },
-            {
+      {
         label: 'ReAct Agent',
         icon: 'pi pi-bolt',
         command: () => navigateTo('/ai/react-agent')
       },
-            {
+      {
         label: 'Reflection Agent',
         icon: 'pi pi-bolt',
         command: () => navigateTo('/ai/reflection-agent')
       },
-            {
+      {
         label: 'Retrieval Agent',
         icon: 'pi pi-bolt',
         command: () => navigateTo('/ai/retrieval-agent')
       },
-                  {
+      {
         label: 'Multi Agent',
         icon: 'pi pi-bolt',
         command: () => navigateTo('/ai/multi-agent')
@@ -85,7 +101,7 @@ const items = ref<MenuItem[]>([
     label: 'Firebase',
     icon: 'pi pi-database',
     items: [
-    {
+      {
         label: 'Firebase Setup',
         icon: 'pi pi-cog',
         command: () => navigateTo('/firebase/setup')
@@ -113,16 +129,16 @@ const items = ref<MenuItem[]>([
     ]
   },
   {
-        label: 'PrimeVue',
-        icon: 'pi pi-prime',
-        items: [
+    label: 'PrimeVue',
+    icon: 'pi pi-prime',
+    items: [
 
-          {
-            label: 'Upload',
-            icon: 'pi pi-prime',
-            command: () => navigateTo('/primevue/upload'),
-          },
-        ]
+      {
+        label: 'Upload',
+        icon: 'pi pi-prime',
+        command: () => navigateTo('/primevue/upload'),
+      },
+    ]
   },
   {
     label: 'Resources',
@@ -154,7 +170,14 @@ const items = ref<MenuItem[]>([
     command: () => navigateTo('/about'),
     icon: 'pi pi-info-circle'
   },
-]);
+])
+
+// Optional: Client-side color mode logging
+onMounted(() => {
+  if (process.client) {
+    console.log('Current color mode:', colorMode.preference)
+  }
+})
 </script>
 
 <style scoped>
@@ -195,9 +218,9 @@ const items = ref<MenuItem[]>([
 }
 
 :deep(.p-menuitem-link) {
-    padding-top: 0.25rem !important;
-    padding-right: 0.5rem !important;
-    padding-bottom: 0.25rem !important;
-    padding-left: 0.5rem !important;
+  padding-top: 0.25rem !important;
+  padding-right: 0.5rem !important;
+  padding-bottom: 0.25rem !important;
+  padding-left: 0.5rem !important;
 }
 </style>

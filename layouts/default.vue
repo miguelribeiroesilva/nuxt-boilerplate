@@ -14,6 +14,7 @@ useLocaleHead({
         <slot />
       </div>
       <Footer />
+      <Toast />
     </div>
   </div>
 </template>

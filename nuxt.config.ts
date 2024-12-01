@@ -198,6 +198,22 @@ export default defineNuxtConfig({
   },
 
   primevue: {
+    components: {
+      prefix: '',
+      include: [
+        'Avatar',
+        'Badge',
+        'Button',
+        'Card',
+        'TabView',
+        'TabPanel',
+        'Tag',
+        'InputText',
+        'Password',
+        'Menubar',
+        'Toast'
+      ]
+    },
     cssLayerOrder: 'tailwind-base, primevue, tailwind-utilities' as any,
     options: {
       ripple: true,
@@ -209,33 +225,6 @@ export default defineNuxtConfig({
       confirmation: true,
       dialog: true,
       toast: true
-    },
-    components: {
-      include: [
-        'Badge',
-        'Button',
-        'Calendar',
-        'Checkbox',
-        'Column',
-        'ConfirmDialog',
-        'DataTable',
-        'Dialog',
-        'Dropdown',
-        'InputSwitch',
-        'InputText',
-        'InputNumber',
-        'Menubar',
-        'ProgressBar',
-        'ProgressSpinner',
-        'Sidebar',
-        'Slider',
-        'Tag',
-        'Textarea',
-        'Toast',
-        'Tree',
-        'FileUpload',
-        'Menu'
-      ]
     },
     directives: {
       include: ['tooltip', 'ripple']
