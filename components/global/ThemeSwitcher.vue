@@ -4,7 +4,7 @@
     @click="toggleDark()"
     text
     rounded
-    class="theme-toggle inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1 text-gray-900 dark:border-gray-700 dark:bg-slate-800 dark:text-white"
+    class="inline-flex shadow-none border-0 outline-0 dark:bg-gray-900 dark:text-white bg-white text-gray-900"
     aria-label="Toggle dark mode"
   />
 </template>
@@ -17,7 +17,7 @@ const isDark = useDark();
 const toggleDark = useToggle(isDark);
 </script>
 
-<style scoped>
+<!-- <style scoped>
 .theme-toggle {
   width: 34px;
   height: 34px;
@@ -42,4 +42,4 @@ const toggleDark = useToggle(isDark);
     color: #FFFFFF;
   }
 }
-</style>
+</style> -->
