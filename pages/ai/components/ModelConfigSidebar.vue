@@ -9,7 +9,7 @@
   >
     <template #header>
       <div class="flex justify-between items-center w-full">
-        <Button label="Model Configuration" severity="info" disabled class="flex-1" />
+        <Button label="Configuration" severity="info" disabled class="flex-1" />
         <Button
           :icon="position === 'right' ? 'pi pi-angle-right' : 'pi pi-angle-left'"
           text

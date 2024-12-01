@@ -22,7 +22,7 @@ watch(
 
 <template>
   <ClientOnly>
-    <div class="cookie-banner">
+    <div class="cookie-banner dark:bg-gray-900 dark:text-white bg-white text-gray-900">
       <CookieControl />
     </div>
   </ClientOnly>
