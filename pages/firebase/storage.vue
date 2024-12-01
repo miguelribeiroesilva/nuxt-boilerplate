@@ -13,48 +13,48 @@
           <span>Upload Files</span>
           <div class="flex items-center gap-2">
             <div class="p-float-label flex-grow">
-              <InputText 
-                id="currentPath" 
-                v-model="inputPath" 
-                class="w-full" 
+              <InputText
+                id="currentPath"
+                v-model="inputPath"
+                class="w-full"
                 placeholder="Storage Path"
                 @keyup.enter="updateCurrentPath"
               />
               <label for="currentPath">Current Path</label>
             </div>
-            <Button 
-              icon="pi pi-search" 
-              severity="secondary" 
+            <Button
+              icon="pi pi-search"
+              severity="secondary"
               @click="updateCurrentPath"
             />
           </div>
         </div>
       </template>
       <template #content>
-        <div 
-          @dragover.prevent="onDragOver" 
+        <div
+          @dragover.prevent="onDragOver"
           @dragleave.prevent="onDragLeave"
           @drop.prevent="onDrop"
-          class="border-2 border-dashed p-4 text-center transition-all duration-300 ease-in-out 
-                 bg-gray-50 dark:bg-gray-800 
+          class="border-2 border-dashed p-4 text-center transition-all duration-300 ease-in-out
+                 bg-gray-50 dark:bg-gray-800
                  border-gray-300 dark:border-gray-600
                  text-gray-600 dark:text-gray-300"
           :class="isDragging ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : ''"
         >
-          <input 
-            type="file" 
-            ref="fileInput" 
-            @change="onFileSelect" 
-            accept="image/*,.pdf,.doc,.docx" 
-            multiple 
+          <input
+            type="file"
+            ref="fileInput"
+            @change="onFileSelect"
+            accept="image/*,.pdf,.doc,.docx"
+            multiple
             class="hidden"
           />
           <div v-if="!isDragging" class="flex flex-col items-center justify-center">
             <i class="pi pi-cloud-upload text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
             <p class="mb-2">
-              Drag and drop files here or 
-              <span 
-                @click="triggerFileInput" 
+              Drag and drop files here or
+              <span
+                @click="triggerFileInput"
                 class="text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
               >
                 browse
@@ -70,10 +70,10 @@
         </div>
 
         <div class="mt-4 flex justify-center">
-          <Button 
-            @click="triggerFileInput" 
-            icon="pi pi-upload" 
-            label="Save File" 
+          <Button
+            @click="triggerFileInput"
+            icon="pi pi-upload"
+            label="Save File"
             severity="secondary"
           />
         </div>
@@ -95,12 +95,12 @@
           <Button type="button" icon="pi pi-plus" label="Add Metadata" text @click="addMetadata" />
         </div>
 
-        <Button 
-          type="button" 
-          @click="handleUpload" 
-          :loading="uploading" 
-          :disabled="!uploadForm.file" 
-          severity="primary" 
+        <Button
+          type="button"
+          @click="handleUpload"
+          :loading="uploading"
+          :disabled="!uploadForm.file"
+          severity="primary"
           class="w-full mt-4"
         >
           Save File
@@ -112,9 +112,9 @@
           <h3 class="text-sm font-medium mb-2">Preview</h3>
           <!-- Image Preview -->
           <div v-if="isImage" class="mb-2">
-            <img 
-              :src="previewUrl" 
-              alt="File Preview" 
+            <img
+              :src="previewUrl"
+              alt="File Preview"
               class="max-h-40 max-w-full object-contain rounded"
             />
           </div>
@@ -131,10 +131,10 @@
           <div class="flex items-center justify-between mb-2 mt-4">
             <h3>File Browser</h3>
             <div class="flex items-center gap-2">
-              <Button 
-                icon="pi pi-refresh" 
-                severity="secondary" 
-                text 
+              <Button
+                icon="pi pi-refresh"
+                severity="secondary"
+                text
                 @click="refreshFiles"
               />
             </div>
@@ -190,7 +190,6 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
-import Dialog from 'primevue/dialog';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Card from 'primevue/card';
@@ -200,15 +199,16 @@ import InputText from 'primevue/inputtext';
 import { useFirebase } from '~/composables/useFirebase';
 import { getDownloadURL, ref as storageRef, getBlob, uploadBytes } from 'firebase/storage';
 
-const { 
-  uploadFile, 
-  deleteFile, 
-  listFiles, 
-  loading, 
-  error, 
-  downloadFile: firebaseDownloadFile 
+const {
+  uploadFile,
+  deleteFile,
+  listFiles,
+  loading,
+  error,
+  downloadFile: firebaseDownloadFile
 } = useFirebase();
 const toast = useToast();
+const { storage } = useFirebase()
 
 // State
 const files = ref([]);
@@ -232,7 +232,7 @@ const onFileSelect = (event: Event) => {
   const input = event.target as HTMLInputElement;
   if (input.files && input.files.length > 0) {
     uploadForm.value.file = input.files[0];
-    
+
     // If it's an image, create a preview
     if (uploadForm.value.file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -241,12 +241,12 @@ const onFileSelect = (event: Event) => {
       };
       reader.readAsDataURL(uploadForm.value.file);
     }
-    
+
     // Show toast notification
     toast.add({
-      severity: 'info', 
-      summary: 'File Selected', 
-      detail: `${uploadForm.value.file.name} ready to upload`, 
+      severity: 'info',
+      summary: 'File Selected',
+      detail: `${uploadForm.value.file.name} ready to upload`,
       life: 3000
     });
   }
@@ -265,12 +265,12 @@ const onDragLeave = (event: DragEvent) => {
 const onDrop = (event: DragEvent) => {
   event.preventDefault();
   isDragging.value = false;
-  
+
   const files = event.dataTransfer?.files;
   if (files && files.length > 0) {
     // Select the first file
     uploadForm.value.file = files[0];
-    
+
     // If it's an image, create a preview
     if (uploadForm.value.file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -279,12 +279,12 @@ const onDrop = (event: DragEvent) => {
       };
       reader.readAsDataURL(uploadForm.value.file);
     }
-    
+
     // Optional: Show a toast or update UI to confirm file selection
     toast.add({
-      severity: 'info', 
-      summary: 'File Selected', 
-      detail: `${uploadForm.value.file.name} ready to upload`, 
+      severity: 'info',
+      summary: 'File Selected',
+      detail: `${uploadForm.value.file.name} ready to upload`,
       life: 3000
     });
   }
@@ -329,12 +329,12 @@ const getFileIcon = (filename: string) => {
 
 const updateCurrentPath = () => {
   const sanitizedPath = inputPath.value.trim().replace(/^\/+|\/+$/g, '');
-  
+
   // Only update and refresh if path has changed
   if (sanitizedPath !== currentPath.value) {
     currentPath.value = sanitizedPath || 'images';
     inputPath.value = currentPath.value;
-    
+
     refreshFiles();
   }
 };
@@ -342,16 +342,16 @@ const updateCurrentPath = () => {
 const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text).then(() => {
     toast.add({
-      severity: 'success', 
-      summary: 'Copied', 
-      detail: 'Download URL copied to clipboard', 
+      severity: 'success',
+      summary: 'Copied',
+      detail: 'Download URL copied to clipboard',
       life: 2000
     });
   }).catch(err => {
     toast.add({
-      severity: 'error', 
-      summary: 'Copy Failed', 
-      detail: 'Unable to copy URL', 
+      severity: 'error',
+      summary: 'Copy Failed',
+      detail: 'Unable to copy URL',
       life: 3000
     });
   });
@@ -365,18 +365,30 @@ const downloadFile = async (file: any) => {
     }
 
     // Use the Firebase composable download method
-    await firebaseDownloadFile(
-      file.fullPath, 
-      file.name, 
+    const downloadedBlob = await firebaseDownloadFile(
+      file.fullPath,
+      file.name,
       (severity, summary, detail) => {
         toast.add({
-          severity, 
-          summary, 
+          severity,
+          summary,
           detail,
           life: severity === 'success' ? 2000 : 3000
         });
       }
     );
+
+    // Create a download link for the blob
+    const url = window.URL.createObjectURL(downloadedBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', file.name);
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   } catch (err: any) {
     console.error('Download error:', err);
   }
@@ -411,12 +423,12 @@ const handleDeleteFile = async (file: any) => {
 const handleUpload = async () => {
   try {
     uploading.value = true;
-    
+
     // Validate file
     if (!uploadForm.value.file) {
       toast.add({
-        severity: 'warn', 
-        summary: 'No File Selected', 
+        severity: 'warn',
+        summary: 'No File Selected',
         detail: 'Please select a file to upload',
         life: 3000
       });
@@ -435,15 +447,15 @@ const handleUpload = async () => {
     const uploadPath = `${uploadForm.value.folder}/${uploadForm.value.file.name}`;
     const fileRef = storageRef(storage, uploadPath);
     const uploadResult = await uploadBytes(fileRef, uploadForm.value.file, { customMetadata: metadata });
-    
+
     // Get download URL
     const downloadURL = await getDownloadURL(uploadResult.ref);
     lastUploadedFileURL.value = downloadURL;
 
     // Success toast
     toast.add({
-      severity: 'success', 
-      summary: 'Upload Successful', 
+      severity: 'success',
+      summary: 'Upload Successful',
       detail: `File uploaded to ${uploadPath}`,
       life: 3000
     });
@@ -461,8 +473,8 @@ const handleUpload = async () => {
   } catch (err: any) {
     // Error handling
     toast.add({
-      severity: 'error', 
-      summary: 'Upload Failed', 
+      severity: 'error',
+      summary: 'Upload Failed',
       detail: err.message,
       life: 3000
     });
@@ -477,18 +489,18 @@ const refreshFiles = async () => {
     // Sanitize path, default to 'images' if empty
     const path = currentPath.value || 'images';
     files.value = await listFiles(path);
-    
+
     // Update toast with current path
     toast.add({
-      severity: 'info', 
-      summary: 'Files Refreshed', 
-      detail: `Loaded files from ${path}`, 
+      severity: 'info',
+      summary: 'Files Refreshed',
+      detail: `Loaded files from ${path}`,
       life: 2000
     });
   } catch (err: any) {
     toast.add({
-      severity: 'error', 
-      summary: 'Error Loading Files', 
+      severity: 'error',
+      summary: 'Error Loading Files',
       detail: err.message,
       life: 3000
     });

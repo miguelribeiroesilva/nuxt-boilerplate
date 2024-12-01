@@ -151,19 +151,18 @@ export const useFirebase = () => {
       loading.value = true;
       error.value = null;
 
-      // Create a reference to the file in Firebase Storage
-      const fileReference = storageRef(storage, filePath);
-
-      // Get the download URL
-      const downloadURL = await getDownloadURL(fileReference);
-
-      // Open file save dialog directly
-      window.open(downloadURL, '_self');
+      // Use Nuxt server route to download the file
+      const downloadResponse = await $fetch(`/api/download?filePath=${encodeURIComponent(filePath)}`, {
+        method: 'GET',
+        responseType: 'blob'
+      });
 
       // Show success toast if callback is provided
       if (toastCallback) {
-        toastCallback('success', 'File Save Dialog', `${fileName || 'File'} save dialog opened`);
+        toastCallback('success', 'File Download', `${fileName || 'File'} download initiated`);
       }
+
+      return downloadResponse;
     } catch (err: any) {
       error.value = err.message || 'Download failed';
       console.error('Download error:', err);
