@@ -1,14 +1,25 @@
 import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 import { getAuth, signInAnonymously } from 'firebase/auth'
-import { getStorage } from 'firebase/storage'
+import { 
+  getStorage, 
+  ref as storageRef, 
+  getDownloadURL, 
+  uploadBytes, 
+  deleteObject, 
+  listAll,
+  getBlob 
+} from 'firebase/storage'
 import { useRuntimeConfig } from 'nuxt/app'
 import { Timestamp } from 'firebase/firestore';
+import { useToast } from 'primevue/usetoast';
 
 export const useFirebase = () => {
   const config = useRuntimeConfig()
   const testing = ref(false);
   const testResult = ref<{ success: boolean; message: string } | null>(null);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
 
   const firebaseConfig = {
     apiKey: config.public.firebaseApiKey,
@@ -131,6 +142,107 @@ export const useFirebase = () => {
     }
   };
 
+  const downloadFile = async (
+    filePath: string, 
+    fileName?: string, 
+    toastCallback?: (severity: 'success' | 'error', summary: string, detail: string) => void
+  ) => {
+    try {
+      loading.value = true;
+      error.value = null;
+
+      // Create a reference to the file in Firebase Storage
+      const fileReference = storageRef(storage, filePath);
+
+      // Get the download URL
+      const downloadURL = await getDownloadURL(fileReference);
+
+      // Open file save dialog directly
+      window.open(downloadURL, '_self');
+
+      // Show success toast if callback is provided
+      if (toastCallback) {
+        toastCallback('success', 'File Save Dialog', `${fileName || 'File'} save dialog opened`);
+      }
+    } catch (err: any) {
+      error.value = err.message || 'Download failed';
+      console.error('Download error:', err);
+      
+      // Show error toast if callback is provided
+      if (toastCallback) {
+        toastCallback('error', 'Download Failed', err.message);
+      }
+      
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const uploadFile = async (file: File, path: string) => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const storageReference = storageRef(storage, path);
+      const snapshot = await uploadBytes(storageReference, file);
+      return snapshot;
+    } catch (err: any) {
+      error.value = err.message || 'Upload failed';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const deleteFile = async (filePath: string) => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const fileReference = storageRef(storage, filePath);
+      await deleteObject(fileReference);
+    } catch (err: any) {
+      error.value = err.message || 'Delete failed';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const listFiles = async (path: string) => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const listReference = storageRef(storage, path);
+      const fileList = await listAll(listReference);
+      
+      // Enrich file list with additional metadata
+      const enrichedFiles = await Promise.all(fileList.items.map(async (fileRef) => {
+        try {
+          const downloadURL = await getDownloadURL(fileRef);
+          return {
+            name: fileRef.name,
+            fullPath: fileRef.fullPath,
+            downloadURL,
+          };
+        } catch (err) {
+          console.error(`Error getting download URL for ${fileRef.name}:`, err);
+          return {
+            name: fileRef.name,
+            fullPath: fileRef.fullPath,
+            downloadURL: null,
+          };
+        }
+      }));
+
+      return enrichedFiles;
+    } catch (err: any) {
+      error.value = err.message || 'List files failed';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     app,
     auth,
@@ -147,5 +259,11 @@ export const useFirebase = () => {
     testing,
     testResult,
     testConnection,
+    downloadFile,
+    uploadFile,
+    deleteFile,
+    listFiles,
+    loading,
+    error,
   }
 }
