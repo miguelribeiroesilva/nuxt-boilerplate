@@ -90,6 +90,7 @@ export default defineNuxtConfig({
     'primevue/resources/primevue.css',
     'primeicons/primeicons.css',
     './assets/css/tailwind.css',
+    './assets/css/cookiecontrol.css'
   ],
 
   imports: {
@@ -100,37 +101,7 @@ export default defineNuxtConfig({
       'utils'
     ],
     global: true,
-    autoImport: true,
-    imports: [
-      {
-        from: 'vue',
-        imports: [
-          'ref',
-          'computed',
-          'reactive',
-          'watch',
-          'watchEffect',
-          'onMounted',
-          'onUnmounted',
-          'nextTick',
-          'toRef',
-          'toRefs',
-          'provide',
-          'inject'
-        ],
-      } as any,
-      {
-        from: 'vue-router',
-        imports: [
-          'useRouter',
-          'useRoute',
-          'onBeforeRouteLeave',
-          'onBeforeRouteUpdate',
-          'RouterLink',
-          'RouterView'
-        ]
-      } as any
-    ],
+    autoImport: true
   },
 
   components: [
@@ -178,24 +149,13 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxtjs/color-mode',
     '@nuxtjs/i18n',
-    '@dargmuesli/nuxt-cookie-control',
-    '@nuxt/image',
-    '@nuxt/content',
     '@nuxtjs/device',
     '@nuxtjs/google-fonts',
     'nuxt-primevue',
-    '@dargmuesli/nuxt-cookie-control',
+    '@nuxt/image',
+    '@nuxt/content',
+    '@dargmuesli/nuxt-cookie-control'
   ],
-
-  primevueSvcOptions: {
-    services: {
-      tooltip: true,
-      ripple: true,
-      confirmation: true,
-      dialog: true,
-      toast: true
-    }
-  },
 
   primevue: {
     components: {
@@ -271,6 +231,59 @@ export default defineNuxtConfig({
   },
 
   cookieControl: {
+    barPosition: 'bottom-full',
+    closeModalOnClickOutside: true,
+    colors: {
+      barBackground: '#12141C',
+      barButtonBackground: '#3B82F6',
+      barButtonColor: '#fff',
+      barButtonHoverBackground: '#2563EB',
+      barTextColor: '#fff',
+      modalBackground: '#fff',
+      modalButtonBackground: '#3B82F6',
+      modalButtonColor: '#fff',
+      modalButtonHoverBackground: '#2563EB',
+      modalTextColor: '#000',
+      checkboxActiveBackground: '#3B82F6',
+      checkboxInactiveBackground: '#000',
+      checkboxDisabledBackground: '#ddd',
+      checkboxActiveCircleBackground: '#fff',
+      checkboxInactiveCircleBackground: '#fff',
+      checkboxDisabledCircleBackground: '#fff'
+    },
+    cookies: {
+      necessary: [
+        {
+          description: {
+            en: 'Used for user authentication and session management',
+            fr: 'Utilisé pour l\'authentification et la gestion des sessions',
+            ar: 'يستخدم للمصادقة وإدارة الجلسات'
+          },
+          id: 'authentication',
+          name: {
+            en: 'Authentication',
+            fr: 'Authentification',
+            ar: 'المصادقة'
+          }
+        }
+      ],
+      optional: [
+        {
+          description: {
+            en: 'Used to understand how you use the site',
+            fr: 'Utilisé pour comprendre comment vous utilisez le site',
+            ar: 'يستخدم لفهم كيفية استخدامك للموقع'
+          },
+          id: 'analytics',
+          name: {
+            en: 'Analytics',
+            fr: 'Analytique',
+            ar: 'التحليلات'
+          }
+        }
+      ]
+    },
+    isControlButtonEnabled: true,
     locales: ['en', 'fr', 'ar']
   },
 

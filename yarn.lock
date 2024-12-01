@@ -343,14 +343,13 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@dargmuesli/nuxt-cookie-control@^8.4.17":
-  version "8.4.17"
-  resolved "https://registry.npmjs.org/@dargmuesli/nuxt-cookie-control/-/nuxt-cookie-control-8.4.17.tgz"
-  integrity sha512-PJ0IKMKLgKfKZ+fbX0oWgOn7DmygZxfQdZlk3BLQQ2u4mcPDDZ7fwzQ2Woees/s0hKJT2a6bsSogADh2LtTNpQ==
+"@dargmuesli/nuxt-cookie-control@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.npmjs.org/@dargmuesli/nuxt-cookie-control/-/nuxt-cookie-control-8.0.0.tgz"
+  integrity sha512-InfnGDJ+kmrhUJB18DnjzXsCUTjQ8Dj7A06KN8xxAuxwPMH45+guAgX96k7sxaIvWw55wiPchpy4D27RM9nkBw==
   dependencies:
     "@nuxt/kit" "^3.8.0"
     css-vars-ponyfill "^2.4.8"
-    defu "^6.1.4"
     string-replace-loader "^3.1.0"
 
 "@electric-sql/pglite@*", "@electric-sql/pglite@^0.2.0":
