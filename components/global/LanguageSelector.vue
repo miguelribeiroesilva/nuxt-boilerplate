@@ -29,10 +29,10 @@ defineOptions({
   <div class="relative inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1 text-sm text-gray-900 dark:border-gray-700 dark:bg-slate-800 dark:text-white">
     <select
       :value="locale.value"
-      @change="e => { 
+      @change="e => {
         const newLocale = (e.target as HTMLSelectElement).value as AllowedLocale
         locale.value = newLocale
-        updateLocale(newLocale) 
+        updateLocale(newLocale)
       }"
       class="appearance-none bg-transparent border-none py-1 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors"
     >

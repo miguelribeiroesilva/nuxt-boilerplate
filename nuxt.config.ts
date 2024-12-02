@@ -72,6 +72,7 @@ declare module '@nuxt/schema' {
         confirmation?: boolean;
         dialog?: boolean;
         toast?: boolean;
+        confirmDialog?: boolean;
       }
     }
   }
@@ -159,19 +160,93 @@ export default defineNuxtConfig({
 
   primevue: {
     components: {
-      prefix: '',
       include: [
-        'Avatar',
-        'Badge',
-        'Button',
+        // Layout Components
+        'Divider',
+        'Panel',
+        'Sidebar',
+        'Fieldset',
         'Card',
+        'Toolbar',
+
+        // Data Components
+        'DataView',
+        'DataViewLayoutOptions',
+        'DataTable',
+        'Column',
+        'ColumnGroup',
+        'OrganizationChart',
+        'Row',
+        'TreeTable',
+        'Timeline',
+
+        // Form Components
+        'AutoComplete',
+        'Calendar',
+        'Checkbox',
+        'Chips',
+        'ColorPicker',
+        'Dropdown',
+        'Editor',
+        'InputMask',
+        'InputNumber',
+        'InputSwitch',
+        'InputText',
+        'Knob',
+        'ListBox',
+        'MultiSelect',
+        'Password',
+        'RadioButton',
+        'Rating',
+        'Select',
+        'Slider',
+        'Textarea',
+
+        // Button Components
+        'Button',
+        'ButtonGroup',
+        'SpeedDial',
+        'SplitButton',
+
+        // Panel Components
+        'Accordion',
+        'AccordionTab',
         'TabView',
         'TabPanel',
-        'Tag',
-        'InputText',
-        'Password',
+        'Fieldset',
+        'Carousel',
+
+        // Overlay Components
+        'Dialog',
+        'ConfirmDialog',
+        'OverlayPanel',
+        'Tooltip',
+        'ProgressSpinner',
+        'Toast',
+
+        // Menu Components
+        'Menu',
+        'ContextMenu',
         'Menubar',
-        'Toast'
+        'PanelMenu',
+        'Steps',
+        'TabMenu',
+        'TieredMenu',
+
+        // Chart Components
+        'Chart',
+
+        // Media Components
+        'Galleria',
+
+        // Misc Components
+        'Avatar',
+        'Badge',
+        'Chip',
+        'Skeleton',
+        'ProgressBar',
+        'Tag',
+        'Terminal'
       ]
     },
     cssLayerOrder: 'tailwind-base, primevue, tailwind-utilities' as any,
@@ -182,8 +257,7 @@ export default defineNuxtConfig({
     services: {
       tooltip: true,
       ripple: true,
-      confirmation: true,
-      dialog: true,
+      confirmDialog: true,
       toast: true
     },
     directives: {
