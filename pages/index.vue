@@ -89,7 +89,7 @@ useSeoMeta({
           <Icon
             name="heroicons:check-circle"
             class="me-2 text-xl text-green-500 dark:text-green-300"
-          />{{ $t("pages.index.features.iconify") }}
+          />{{ $t("pages.index.features.Primevue") }}
         </li>
         <li class="py-2">
           <Icon
