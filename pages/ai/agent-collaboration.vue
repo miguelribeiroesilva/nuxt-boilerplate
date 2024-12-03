@@ -1,32 +1,21 @@
 <template>
   <div>
-    <header>
-      <div class="flex items-center gap-2 w-full px-0">
-        <BackButton />
-        <Button label="Agent Collaboration" severity="info" disabled class="flex-1 p-0" />
-        <HelpDialog
-          title="Agent Collaboration"
-          docPath="/docs/agent-collaboration"
-        />
-        <Button
-          icon="pi pi-cog"
-          @click="showSidebar = true"
-          text
-          rounded
-          aria-label="Settings"
-          class="p-1"
-        />
-      </div>
-    </header>
+      <ChatHeader
+    title="Agent Collaboration"
+    :model-name="modelConfig.modelName"
+    :model-status="!!model"
+    :on-settings-click="() => showSidebar = true"
+  />
 
-    <ChatInterface 
+
+    <ChatInterface
       v-model="newMessage"
       :messages="messages"
       :is-loading="isLoading"
       @send="sendMessage"
     />
 
-    <ApiKeyDialog 
+    <ApiKeyDialog
       v-if="showApiKeyDialog"
       v-model="showApiKeyDialog"
       v-model:apiKey="apiKey"
@@ -54,10 +43,8 @@ import { RunnableSequence } from '@langchain/core/runnables';
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts';
 import { AIMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import InputText from 'primevue/inputtext';
-import Button from 'primevue/button';
-import BackButton from '~/components/BackButton.vue';
+
 import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
-import HelpDialog from '~/components/HelpDialog.vue';
 import ModelConfigSidebar from '~/pages/ai/components/ModelConfigSidebar.vue';
 import ChatInterface from './components/ChatInterface.vue';
 import { useApiKeyValidation } from '~/composables/useApiKeyValidation';

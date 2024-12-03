@@ -1,21 +1,19 @@
 <template>
-  <header>
-    <div class="flex items-center gap-2 w-full px-0">
-      <BackButton />
-      <Button label="Streaming Chat" severity="info" disabled class="flex-1" />
-      <HelpDialog title="Streaming Chat" docPath="/docs/chat-stream" />
-      <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
-    </div>
-  </header>
+  <ChatHeader
+    title="Streaming Chat"
+    :model-name="modelConfig.modelName"
+    :model-status="!!model"
+    :on-settings-click="() => showSidebar = true"
+  />
 
-  <ChatInterface 
+  <ChatInterface
     v-model="newMessage"
     :messages="messages"
     :is-loading="isLoading"
     @send="sendMessage"
   />
 
-  <ApiKeyDialog 
+  <ApiKeyDialog
     v-if="showApiKeyDialog"
     v-model="showApiKeyDialog"
     v-model:apiKey="apiKey"
@@ -41,8 +39,8 @@ import ModelConfigSidebar from './components/ModelConfigSidebar.vue'
 import ChatInterface from './components/ChatInterface.vue'
 import { useAiQuotes } from '~/composables/useAiQuotes'
 import { SystemMessage, HumanMessage, AIMessage } from '@langchain/core/messages'
-import Button from 'primevue/button'
 import ApiKeyDialog from './components/ApiKeyDialog.vue'
+import ChatHeader from './components/ChatHeader.vue'
 
 interface Message {
   id?: string
@@ -300,6 +298,7 @@ const sendMessage = async () => {
       } catch (streamError: Error | any) {
         console.error('Streaming error:', streamError)
         error.value = `Error during streaming: ${streamError instanceof Error ? streamError.message : String(streamError)}`
+
         throw streamError
       } finally {
         // Clear current streaming message ID

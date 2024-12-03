@@ -125,47 +125,44 @@ export const useAIModel = () => {
     }
   }
 
-  const initializeModel = async (apiKey: string) => {
+  const initializeModel = async (apiKey?: string) => {
     try {
-      const selectedModel = defaultModels.find(m => m.value === config.value.modelName);
-      if (!selectedModel) {
-        throw new Error('Invalid model selected');
+      // Reset model to null initially
+      model.value = null;
+
+      // Determine the provider based on the current config
+      const provider = config.value.provider;
+      const modelName = config.value.modelName;
+
+      if (!apiKey) {
+        console.warn('No API key provided for model initialization');
+        return null;
       }
 
-      const modelConfig = {
-        modelName: config.value.modelName,
-        temperature: config.value.temperature,
-        streaming: true, // Force streaming to be true
-        maxTokens: config.value.maxTokens,
-        topP: config.value.topP,
-        frequencyPenalty: config.value.frequencyPenalty,
-        presencePenalty: config.value.presencePenalty,
-      };
-
-      if (selectedModel.provider === 'openai') {
+      // Create the appropriate model based on provider
+      if (provider === 'openai') {
         model.value = new ChatOpenAI({
-          openAIApiKey: apiKey,
-          ...modelConfig,
+          openAIApiKey: apiKey.trim(),
+          modelName: modelName,
+          temperature: config.value.temperature,
+          streaming: config.value.streaming,
+          maxTokens: config.value.maxTokens,
         });
-      } else if (selectedModel.provider === 'anthropic') {
+      } else if (provider === 'anthropic') {
         model.value = new ChatAnthropic({
-          anthropicApiKey: apiKey,
-          modelName: modelConfig.modelName,
-          temperature: modelConfig.temperature,
-          maxTokens: modelConfig.maxTokens,
+          anthropicApiKey: apiKey.trim(),
+          modelName: modelName,
+          temperature: config.value.temperature,
+          streaming: config.value.streaming,
+          maxTokens: config.value.maxTokens,
         });
       }
 
-      // Test the connection
-      const response = await model.value.invoke([
-        new SystemMessage(selectedModel.provider === 'openai'
-          ? "You are an AI assistant created by OpenAI."
-          : "You are Claude, an AI assistant created by Anthropic."),
-        new HumanMessage("Hello")
-      ]);
-    } catch (e) {
-      console.error('Error initializing model:', e);
-      throw e;
+      return model.value;
+    } catch (error) {
+      console.error('Failed to initialize model:', error);
+      model.value = null;
+      return null;
     }
   };
 

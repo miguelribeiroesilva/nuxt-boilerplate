@@ -6,14 +6,30 @@ const { locale } = useI18n()
 const runtimeConfig = useRuntimeConfig()
 
 const availableLocales = computed(() => {
-  return runtimeConfig.public.locales || []
+  const locales = runtimeConfig.public.locales || [
+    { code: 'en', name: 'English' },
+    { code: 'fr', name: 'Français' },
+    { code: 'ar', name: 'العربية' }
+  ]
+  return locales
 })
 
-// Initialize from localStorage if available
-const storedLang = localStorage.getItem('nuxt-lang') as AllowedLocale | null
-if (storedLang && ['en', 'fr', 'ar'].includes(storedLang)) {
-  locale.value = storedLang
+// Ensure default locale is set on both client and server
+const initLocale = () => {
+  // Try to set from localStorage first
+  const storedLang = localStorage.getItem('nuxt-lang') as AllowedLocale | null
+  if (storedLang && ['en', 'fr', 'ar'].includes(storedLang)) {
+    locale.value = storedLang
+  } else {
+    // Fallback to 'en' if no valid stored language
+    locale.value = 'en'
+    localStorage.setItem('nuxt-lang', 'en')
+  }
 }
+
+// Call the locale initializer on component mount
+import { onMounted } from 'vue'
+onMounted(initLocale)
 
 // Update localStorage when language changes
 const updateLocale = (newLocale: AllowedLocale) => {
@@ -28,10 +44,10 @@ defineOptions({
 <template>
   <div class="relative inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1 text-sm text-gray-900 dark:border-gray-700 dark:bg-slate-800 dark:text-white">
     <select
-      :value="locale.value"
+      :value="locale"
       @change="e => {
         const newLocale = (e.target as HTMLSelectElement).value as AllowedLocale
-        locale.value = newLocale
+        locale = newLocale
         updateLocale(newLocale)
       }"
       class="appearance-none bg-transparent border-none py-1 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 transition-colors"

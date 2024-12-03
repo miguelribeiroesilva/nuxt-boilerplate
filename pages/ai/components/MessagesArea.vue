@@ -9,15 +9,15 @@
       <div
         class="message rounded-lg p-1 max-w-[85%]"
         :class="{
-          'ml-auto bg-blue-600 text-white': message.role === 'user' || message.role === 'human',
-          'bg-gray-200 dark:bg-gray-700': message.role === 'assistant' || message.role === 'ai',
-          'bg-yellow-100 dark:bg-yellow-900': message.role === 'error'
+          'bg-gray-300 dark:bg-gray-700': message.role === 'user' || message.role === 'human',
+          'ml-auto bg-gray-200 dark:bg-gray-600': message.role === 'assistant' || message.role === 'ai',
+          'bg-red-100 dark:bg-red-900': message.role === 'error'
         }"
       >
-        <div v-if="message.role === 'error'" class="text-red-500 dark:text-red-400">
+        <div v-if="message.role === 'error'" class="text-red-500 dark:text-red-400 text-xs">
           {{ message.content }}
         </div>
-        <div v-else class="whitespace-pre-wrap">{{ message.content }}</div>
+        <div v-else class="whitespace-pre-wrap text-xs">{{ message.content }}</div>
       </div>
     </div>
     <div v-if="isLoading" class="flex items-center space-x-2">

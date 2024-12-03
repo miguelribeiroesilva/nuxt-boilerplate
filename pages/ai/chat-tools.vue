@@ -1,12 +1,11 @@
 <template>
-  <header>
-    <div class="flex items-center gap-2 w-full px-0">
-      <BackButton />
-      <Button label="AI Tools" severity="info" disabled class="flex-1" />
-      <HelpDialog title="AI Tools" docPath="/docs/chat-tools" />
-      <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
-    </div>
-  </header>
+    <ChatHeader
+    title="Chat with Tools"
+    :model-name="modelConfig.modelName"
+    :model-status="!!model"
+    :on-settings-click="() => showSidebar = true"
+  />
+
 
   <ChatInterface
     v-model="newMessage"
@@ -29,10 +28,8 @@
 import { HumanMessage } from '@langchain/core/messages';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import ChatInterface from './components/ChatInterface.vue';
-import Button from 'primevue/button';
-import BackButton from '~/components/BackButton.vue';
+
 import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
-import HelpDialog from '~/components/HelpDialog.vue';
 import ModelConfigSidebar from './components/ModelConfigSidebar.vue';
 
 // Get AI model configuration

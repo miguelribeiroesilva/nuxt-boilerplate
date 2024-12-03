@@ -1,41 +1,16 @@
 <template>
   <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
-    <header>
-      <div class="flex items-center gap-2 w-full px-0">
-        <BackButton />
-        <Button label="Multi-Agent" severity="info" disabled class="flex-1" />
-        <HelpDialog title="Multi-Agent" docPath="/docs/multi-agent" />
-        <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
-      </div>
-    </header>
+    <ChatHeader title="Multi-Agent" :model-name="modelConfig.modelName" :model-status="!!model"
+      :on-settings-click="() => showSidebar = true" />
 
-    <ChatInterface 
-      v-model="newMessage"
-      :messages="messages"
-      :is-loading="isLoading"
-      @send="sendMessage"
-    />
+    <ChatInterface v-model="newMessage" :messages="messages" :is-loading="isLoading" @send="sendMessage" />
 
-    <ApiKeyDialog 
-      v-if="showApiKeyDialog"
-      v-model="showApiKeyDialog"
-      v-model:apiKey="apiKey"
-      :error="error"
-      provider="openai"
-      @close="showApiKeyDialog = false"
-      @submit="handleApiKeySubmit"
-    />
+    <ApiKeyDialog v-if="showApiKeyDialog" v-model="showApiKeyDialog" v-model:apiKey="apiKey" :error="error"
+      provider="openai" @close="showApiKeyDialog = false" @submit="handleApiKeySubmit" />
 
-    <ModelConfigSidebar
-      v-model="showSidebar"
-      :model="model"
-      :config="modelConfig"
-      :available-models="availableModels"
-      :agent-config="agentConfig"
-      @update:config="updateConfig"
-      @update:agent-config="handleConfigUpdate"
-      position="right"
-    />
+    <ModelConfigSidebar v-model="showSidebar" :model="model" :config="modelConfig" :available-models="availableModels"
+      :agent-config="agentConfig" @update:config="updateConfig" @update:agent-config="handleConfigUpdate"
+      position="right" />
   </div>
 </template>
 
@@ -47,11 +22,9 @@ import { StringOutputParser } from '@langchain/core/output_parsers';
 import { PromptTemplate } from '@langchain/core/prompts';
 import Card from 'primevue/card';
 import InputText from 'primevue/inputtext';
-import Button from 'primevue/button';
-import BackButton from '~/components/BackButton.vue';
+
 import MessagesArea from './components/MessagesArea.vue';
 import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
-import HelpDialog from '~/components/HelpDialog.vue';
 import ModelConfigSidebar from '~/pages/ai/components/ModelConfigSidebar.vue';
 import ChatInterface from '~/pages/ai/components/ChatInterface.vue';
 
@@ -190,7 +163,7 @@ onMounted(async () => {
 const model = ref(null);
 const modelConfig = ref({});
 const availableModels = ref([]);
-const updateConfig = () => {};
+const updateConfig = () => { };
 
 const handleApiKeySubmit = async (apiKey: string) => {
   try {
@@ -202,5 +175,4 @@ const handleApiKeySubmit = async (apiKey: string) => {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

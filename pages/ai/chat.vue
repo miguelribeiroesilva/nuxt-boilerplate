@@ -1,21 +1,19 @@
 <template>
-  <header>
-    <div class="flex items-center gap-2 w-full px-0">
-      <BackButton />
-      <Button label="AI Chat" severity="info" disabled class="flex-1" />
-      <HelpDialog title="AI Chat" docPath="/docs/chat" />
-      <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
-    </div>
-  </header>
+  <ChatHeader
+    title="AI Chat"
+    :model-name="modelConfig.modelName"
+    :model-status="!!model"
+    :on-settings-click="() => showSidebar = true"
+  />
 
-  <ChatInterface 
+  <ChatInterface
     v-model="newMessage"
     :messages="messages"
     :is-loading="isLoading"
     @send="sendMessage"
   />
 
-  <ApiKeyDialog 
+  <ApiKeyDialog
     v-if="showApiKeyDialog"
     v-model="showApiKeyDialog"
     v-model:apiKey="apiKey"
@@ -35,11 +33,10 @@ import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp } from 'firebase/firestore';
 import ChatInterface from './components/ChatInterface.vue';
-import Button from 'primevue/button';
-import BackButton from '~/components/BackButton.vue';
+
 import ApiKeyDialog from '~/pages/ai/components/ApiKeyDialog.vue';
-import HelpDialog from '~/components/HelpDialog.vue';
 import ModelConfigSidebar from '~/pages/ai/components/ModelConfigSidebar.vue';
+import ChatHeader from '~/pages/ai/components/ChatHeader.vue';
 
 interface Message {
   role: 'user' | 'error' | 'human' | 'ai' | 'assistant';
@@ -153,34 +150,41 @@ onMounted(async () => {
   try {
     const savedKey = getStoredApiKey();
 
+    // If a saved API key exists, attempt to initialize the model
     if (savedKey) {
       apiKey.value = savedKey;
-      const isValid = await validateApiKey(savedKey);
-      if (isValid) {
-        await initializeChat();
-      } else {
-        showApiKeyDialog.value = true;
+      
+      // Attempt to initialize the model
+      const initializedModel = await initializeModel(savedKey);
+      
+      // Check if model initialization was successful
+      if (initializedModel) {
+        // Optional: Test the model with a simple message
+        try {
+          await initializedModel.invoke([
+            new SystemMessage('You are a helpful AI assistant.'),
+            new HumanMessage('Hello, can you confirm you are working?')
+          ]);
+        } catch (testError) {
+          console.error('Model test failed:', testError);
+          initializedModel = null;
+        }
       }
-    } else {
-      showApiKeyDialog.value = true;
     }
 
-    if (!firestore) return;
-
-    // Subscribe to messages
-    const messagesRef = collection(firestore, 'messages');
+    // Set up Firestore messages listener
+    const messagesRef = collection(firestore, 'chat_messages');
     const q = query(messagesRef, orderBy('timestamp', 'asc'));
-
+    
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      messages.value = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          content: data.content,
-          role: data.role,
-          timestamp: data.timestamp instanceof Timestamp
-            ? data.timestamp.toDate()
-            : new Date(), // Default to current date if timestamp is invalid
-        } as Message;
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          const messageData = change.doc.data() as Message;
+          messages.value.push({
+            ...messageData,
+            timestamp: formatTimestamp(messageData.timestamp)
+          });
+        }
       });
     });
 

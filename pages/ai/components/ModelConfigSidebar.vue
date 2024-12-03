@@ -69,13 +69,60 @@
       </div>
 
       <!-- Additional Configuration Slot -->
-        <div class="mt-6 border-t pt-4">
-          <h3 class="text-lg font-medium mb-4">Agent Configuration</h3>
-          <AgentConfiguration
-            :model-value="agentConfig"
-            @update:model-value="handleConfigUpdate"
-          />
+      <div class="mt-6 border-t pt-4">
+        <h3 class="text-lg font-medium mb-4">Agent Roles</h3>
+        <div class="agent-roles space-y-3">
+          <div class="flex items-center justify-between mb-2">
+            <Button
+              label="Add Role"
+              icon="pi pi-plus"
+              @click="addNewRole"
+              size="small"
+            />
+          </div>
+
+          <TransitionGroup name="role-list" tag="div" class="space-y-3">
+            <div
+              v-for="(role, index) in agentConfig.roles"
+              :key="role.name"
+              class="border rounded-lg p-3 dark:border-gray-700"
+            >
+              <div class="flex justify-between items-center mb-2">
+                <input
+                  v-model="role.name"
+                  class="text-sm font-semibold w-full"
+                  @change="handleRoleUpdate(index, { name: role.name })"
+                />
+                <Button
+                  icon="pi pi-trash"
+                  text
+                  rounded
+                  severity="danger"
+                  @click="handleRoleRemove(index)"
+                />
+              </div>
+              <textarea
+                v-model="role.systemPrompt"
+                class="w-full text-xs border rounded p-2 mt-2"
+                placeholder="System prompt"
+                @change="handleRoleUpdate(index, { systemPrompt: role.systemPrompt })"
+              ></textarea>
+              <div class="flex items-center mt-2">
+                <label class="text-xs mr-2">Temperature:</label>
+                <Slider
+                  v-model="role.temperature"
+                  :min="0"
+                  :max="1"
+                  :step="0.1"
+                  class="flex-1"
+                  @change="handleRoleUpdate(index, { temperature: role.temperature })"
+                />
+                <span class="text-xs ml-2">{{ role.temperature.toFixed(1) }}</span>
+              </div>
+            </div>
+          </TransitionGroup>
         </div>
+      </div>
     </div>
   </Sidebar>
 </template>
@@ -86,8 +133,16 @@ import Sidebar from 'primevue/sidebar';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import Slider from 'primevue/slider';
-import AgentConfiguration from './AgentConfiguration.vue';
-import { type ModelConfig, type ModelOption } from '~/composables/useAIModel';
+import TransitionGroup from 'vue';
+import type { ModelConfig, ModelOption } from '~/composables/useAIModel';
+import type { AgentRole } from '~/composables/useAgentConfig';
+
+interface AgentConfig {
+  roles: AgentRole[];
+  maxTokens: number;
+  modelName: string;
+  temperature: number;
+}
 
 interface Props {
   modelValue: boolean;
@@ -95,7 +150,7 @@ interface Props {
   availableModels?: ModelOption[];
   model?: any;
   position?: string;
-  agentConfig?: any;
+  agentConfig?: AgentConfig;
 }
 
 const props = defineProps<Props>();
@@ -104,7 +159,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean];
   'update:config': [value: ModelConfig];
   'update:model': [value: any];
-  'update:agentConfig': [value: any];
+  'update:agentConfig': [value: AgentConfig];
 }>();
 
 const defaultConfig: ModelConfig = {
@@ -119,7 +174,18 @@ const defaultConfig: ModelConfig = {
 };
 
 const localConfig = ref<ModelConfig>(props.config ? { ...props.config } : { ...defaultConfig });
-const agentConfig = ref(props.agentConfig || {});
+const agentConfig = ref<AgentConfig>(props.agentConfig || {
+  roles: [],
+  maxTokens: 2000,
+  modelName: 'gpt-3.5-turbo',
+  temperature: 0.7
+});
+
+// const modelOptions = [
+//   { label: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo' },
+//   { label: 'GPT-4', value: 'gpt-4' },
+//   { label: 'GPT-4 Turbo', value: 'gpt-4-turbo' }
+// ];
 
 watch(() => props.config, (newConfig) => {
   if (newConfig) {
@@ -138,8 +204,31 @@ const updateConfig = (): void => {
   emit('update:model', props.model);
 };
 
-const handleConfigUpdate = (newConfig: any): void => {
-  emit('update:agentConfig', newConfig);
+const addNewRole = () => {
+  const newRole: AgentRole = {
+    name: `Agent ${agentConfig.value.roles.length + 1}`,
+    description: 'New agent role',
+    systemPrompt: 'You are a helpful assistant.',
+    temperature: agentConfig.value.temperature,
+    active: true
+  };
+  agentConfig.value.roles.push(newRole);
+  emit('update:agentConfig', { ...agentConfig.value });
+};
+
+const handleRoleUpdate = (index: number, updates: Partial<AgentRole>) => {
+  if (agentConfig.value.roles[index]) {
+    agentConfig.value.roles[index] = {
+      ...agentConfig.value.roles[index],
+      ...updates
+    };
+    emit('update:agentConfig', { ...agentConfig.value });
+  }
+};
+
+const handleRoleRemove = (index: number) => {
+  agentConfig.value.roles.splice(index, 1);
+  emit('update:agentConfig', { ...agentConfig.value });
 };
 </script>
 

@@ -1,25 +1,14 @@
 <template>
   <div class="flex flex-col h-screen bg-white dark:bg-gray-800">
-    <header>
-      <div class="flex items-center gap-2 w-full px-0">
-        <BackButton />
-        <Button label="Retrieval Agent" severity="info" disabled class="flex-1" />
-        <HelpDialog title="Retrieval Agent" docPath="/docs/retrieval-agent" />
-        <Button icon="pi pi-cog" @click="showSidebar = true" text rounded aria-label="Settings" class="p-1" />
-      </div>
-    </header>
+    <ChatHeader title="Retrieval Agent" :model-name="modelConfig.modelName" :model-status="!!model"
+      :on-settings-click="() => showSidebar = true" />
 
     <Card>
       <template #title>Document Management</template>
       <template #content>
         <div class="flex flex-col gap-4">
-          <FileUpload
-            :multiple="true"
-            accept=".txt,.pdf,.doc,.docx"
-            :maxFileSize="1000000"
-            @select="onFileSelect"
-            :auto="true"
-          >
+          <FileUpload :multiple="true" accept=".txt,.pdf,.doc,.docx" :maxFileSize="1000000" @select="onFileSelect"
+            :auto="true">
             <template #empty>
               <p>Drag and drop files here or click to upload.</p>
             </template>
@@ -37,32 +26,13 @@
       </template>
     </Card>
 
-    <ChatInterface 
-      v-model="newMessage"
-      :messages="messages"
-      :is-loading="isLoading"
-      @send="sendMessage"
-    />
+    <ChatInterface v-model="newMessage" :messages="messages" :is-loading="isLoading" @send="sendMessage" />
 
-    <ApiKeyDialog 
-      v-if="showApiKeyDialog"
-      v-model="showApiKeyDialog"
-      v-model:apiKey="apiKey"
-      :error="error"
-      provider="openai"
-      @close="showApiKeyDialog = false"
-      @submit="handleApiKeySubmit"
-    />
+    <ApiKeyDialog v-if="showApiKeyDialog" v-model="showApiKeyDialog" v-model:apiKey="apiKey" :error="error"
+      provider="openai" @close="showApiKeyDialog = false" @submit="handleApiKeySubmit" />
 
-    <ModelConfigSidebar
-      :modelValue="showSidebar"
-      @update:modelValue="showSidebar = $event"
-      :model="model"
-      :config="modelConfig"
-      :available-models="availableModels"
-      @update:config="updateConfig"
-      position="right"
-    />
+    <ModelConfigSidebar :modelValue="showSidebar" @update:modelValue="showSidebar = $event" :model="model"
+      :config="modelConfig" :available-models="availableModels" @update:config="updateConfig" position="right" />
   </div>
 </template>
 
@@ -73,7 +43,6 @@ import { OpenAIEmbeddings } from '@langchain/openai';
 import { Document } from '@langchain/core/documents';
 import type { Message } from '~/composables/useAgentConfig';
 import Card from 'primevue/card';
-import Button from 'primevue/button';
 import FileUpload from 'primevue/fileupload';
 import BackButton from '~/components/BackButton.vue';
 import ChatInterface from './components/ChatInterface.vue';
@@ -239,5 +208,4 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
