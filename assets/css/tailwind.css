@@ -1,4 +1,5 @@
 @import './custom.css';
+@import './primevue-custom.css';
 
 @layer tailwind-base, primevue, tailwind-utilities;
 

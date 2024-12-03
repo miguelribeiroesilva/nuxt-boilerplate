@@ -1,0 +1,73 @@
+/* PrimeVue Custom Styles */
+
+/* Toast Styling */
+
+
+.p-toast-container {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: auto !important; /* Adjust width as needed */
+  margin: 0 !important;
+  padding: 0.5rem !important; /* Add some padding from the edge */
+  z-index: 9999 !important;
+}
+
+.p-toast {
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.p-toast-message-container {
+
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.p-toast-message {
+
+  max-width: 100% !important;
+  padding: 0.25rem 0.5rem !important;
+  margin: 0.1rem 0 !important;
+  border-radius: 4px !important; /* Optional: add slight rounded corners */
+}
+
+.p-toast-message-content {
+  border: none !important;
+  padding: 0.1rem 0.25rem !important;
+  gap: 0.25rem !important;
+}
+
+.p-toast-message-icon {
+  margin-right: 0.25rem !important;
+  font-size: 0.8rem !important;
+}
+
+.p-toast-message-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem !important;
+  font-size: 0.7rem !important;
+  line-height: 1rem !important;
+}
+
+.p-toast-summary {
+  font-size: 0.75rem !important;
+  margin-bottom: 0 !important;
+  font-weight: 600 !important;
+}
+
+.p-toast-detail {
+  font-size: 0.65rem !important;
+  margin-top: 0 !important;
+}
+
+
+.p-toast.p-toast-container.p-toast-top-right {
+  bottom: 0 !important;
+  right: 0 !important;
+}
+
+

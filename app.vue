@@ -16,7 +16,6 @@ useHead({
   <NuxtLayout>
     <div>
       <CookieControl />
-
       <main class="container mx-auto">
         <NuxtPage />
       </main>

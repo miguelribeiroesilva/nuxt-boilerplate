@@ -12,6 +12,7 @@
       </ClientOnly>
     </div>
   </footer>
+
 </template>
 
 <script setup lang="ts">

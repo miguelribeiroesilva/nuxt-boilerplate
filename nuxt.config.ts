@@ -91,7 +91,9 @@ export default defineNuxtConfig({
     'primevue/resources/primevue.css',
     'primeicons/primeicons.css',
     './assets/css/tailwind.css',
-    './assets/css/cookiecontrol.css'
+    './assets/css/cookiecontrol.css',
+    '~/assets/css/primevue-custom.css',
+
   ],
 
   imports: {

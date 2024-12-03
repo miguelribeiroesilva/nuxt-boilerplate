@@ -114,6 +114,34 @@ export const useFirestore = () => {
     }
   }
 
+  const checkCollectionExists = async (collectionName: string): Promise<boolean> => {
+    try {
+      const collectionRef = collection(firestore, collectionName)
+      const querySnapshot = await getDocs(collectionRef)
+      
+      if (querySnapshot.empty) {
+        throw new Error(`Collection "${collectionName}" exists but is empty.`)
+      }
+      
+      return true
+    } catch (error: any) {
+      if (error.code === 'permission-denied') {
+        throw new Error(`Permission denied: Unable to access collection "${collectionName}". Check your Firestore security rules.`)
+      }
+      
+      if (error.message.includes('no-such-collection')) {
+        throw new Error(`Collection "${collectionName}" does not exist in the Firestore database.`)
+      }
+      
+      if (error.code === 'unavailable') {
+        throw new Error(`Firestore service is currently unavailable. Please check your network connection.`)
+      }
+      
+      console.error('Unexpected error checking collection:', error)
+      throw new Error(`Unexpected error checking collection "${collectionName}": ${error.message}`)
+    }
+  }
+
   return {
     getCollection,
     getDocument,
@@ -121,6 +149,7 @@ export const useFirestore = () => {
     updateDocument,
     deleteDocument,
     queryCollection,
+    checkCollectionExists,
     where,
     orderBy,
     limit,
